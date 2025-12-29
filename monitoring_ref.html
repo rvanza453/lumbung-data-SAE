@@ -1,0 +1,2437 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoring Data - Lubung Data SAE</title>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="assets/css/style.css" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        /* Custom scrollbar hiding for cleaner UI */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* Table styling for dense data */
+        th, td {
+            white-space: nowrap;
+        }
+        /* Sticky Footer style */
+        tfoot {
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
+            background-color: #f3f4f6; /* bg-gray-100 */
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        }
+        
+        /* Animation for Modal */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.2s ease-out;
+        }
+        
+        /* Spin animation for loading button */
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* --- PRINT STYLES --- */
+        @media print {
+            @page {
+                size: landscape;
+                margin: 5mm;
+            }
+            body {
+                padding-top: 0 !important;
+                background-color: white !important;
+                -webkit-print-color-adjust: exact;
+            }
+            /* Hide UI elements */
+            nav, header, .no-print, button, .shadow-sm, input, select, .border-dashed {
+                display: none !important;
+            }
+            /* Show Print Area */
+            #print-area {
+                display: block !important;
+                width: 100%;
+                font-family: 'Times New Roman', Times, serif;
+            }
+            
+            /* Print Table Styling */
+            .print-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 10px;
+            }
+            .print-table th, .print-table td {
+                border: 1px solid black;
+                padding: 4px;
+                color: black;
+                vertical-align: middle;
+            }
+            .print-table th {
+                background-color: #f0f0f0 !important;
+                text-align: center;
+                font-weight: bold;
+                text-transform: uppercase;
+            }
+            .signature-box {
+                height: 60px;
+            }
+            tr {
+                page-break-inside: avoid;
+            }
+        }
+        
+        /* Hide print area on screen */
+        #print-area {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <nav class="bg-blue-600 shadow-lg fixed top-0 left-0 right-0 z-50 no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="dashboard.php" class="flex items-center text-white hover:text-blue-200 transition-colors">
+                        <i class="fas fa-database text-xl mr-3"></i>
+                        <span class="font-bold text-lg">Lubung Data SAE</span>
+                    </a>
+                </div>
+
+                <div class="hidden md:block">
+                    <div class="flex items-center space-x-1">
+                        <a href="dashboard.php" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center">
+                            <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                        </a>
+                        <a href="upload.php" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center">
+                            <i class="fas fa-upload mr-2"></i>Upload Data
+                        </a>
+                        <a href="file-manager.php" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center">
+                            <i class="fas fa-folder-open mr-2"></i>File Manager
+                        </a>
+                        <a href="monitoring.html" class="bg-blue-800 text-blue-100 px-3 py-2 rounded-md text-sm font-medium flex items-center">
+                            <i class="fas fa-chart-line mr-2"></i>Monitoring
+                        </a>
+                        <a href="user-management.php" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center">
+                            <i class="fas fa-users mr-2"></i>Kelola User
+                        </a>
+                        <a href="activity-logs.php" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center">
+                            <i class="fas fa-history mr-2"></i>Activity Logs
+                        </a>
+                    </div>
+                </div>
+
+                <div class="hidden md:block">
+                    <div class="relative">
+                        <button id="profile-button" class="bg-blue-700 flex items-center text-sm rounded-full text-white hover:bg-blue-800 transition-colors px-3 py-2">
+                            <i class="fas fa-user mr-2"></i>
+                            <span>User Account</span>
+                            <i class="fas fa-chevron-down ml-2 text-xs"></i>
+                        </button>
+                        <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                            <a href="profile.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-user-edit mr-2"></i>Profil Saya
+                            </a>
+                            <hr class="border-gray-200 my-1">
+                            <a href="logout.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="text-white hover:text-blue-200 focus:outline-none focus:text-blue-200 transition-colors">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="mobile-menu" class="hidden md:hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 bg-blue-700">
+                <a href="dashboard.php" class="text-white hover:bg-blue-800 block px-3 py-2 rounded-md text-base font-medium transition-colors">
+                    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                </a>
+                <a href="upload.php" class="text-white hover:bg-blue-800 block px-3 py-2 rounded-md text-base font-medium transition-colors">
+                    <i class="fas fa-upload mr-2"></i>Upload Data
+                </a>
+                <a href="file-manager.php" class="text-white hover:bg-blue-800 block px-3 py-2 rounded-md text-base font-medium transition-colors">
+                    <i class="fas fa-folder-open mr-2"></i>File Manager
+                </a>
+                <a href="monitoring.html" class="bg-blue-800 text-blue-100 block px-3 py-2 rounded-md text-base font-medium">
+                    <i class="fas fa-chart-line mr-2"></i>Monitoring
+                </a>
+                <a href="user-management.php" class="text-white hover:bg-blue-800 block px-3 py-2 rounded-md text-base font-medium transition-colors">
+                    <i class="fas fa-users mr-2"></i>Kelola User
+                </a>
+                <a href="activity-logs.php" class="text-white hover:bg-blue-800 block px-3 py-2 rounded-md text-base font-medium transition-colors">
+                    <i class="fas fa-history mr-2"></i>Activity Logs
+                </a>
+                <hr class="border-blue-600 my-2">
+                <a href="profile.php" class="text-white hover:bg-blue-800 block px-3 py-2 rounded-md text-base font-medium transition-colors">
+                    <i class="fas fa-user-edit mr-2"></i>Profil Saya
+                </a>
+                <a href="logout.php" class="text-white hover:bg-blue-800 block px-3 py-2 rounded-md text-base font-medium transition-colors">
+                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div id="root">
+        <div style="display: flex; justify-content: center; align-items: center; min-height: 80vh; background: #f9fafb;">
+            <div style="text-align: center; padding: 40px; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                <div style="font-size: 48px; margin-bottom: 20px;" class="fas fa-circle-notch fa-spin text-primary"></div>
+                <h3 style="margin: 0 0 10px 0; color: #333;">Loading Monitoring System...</h3>
+                <p style="margin: 0; color: #666; font-size: 14px;">Initializing React components and loading database...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+
+    <script type="text/babel">
+        const { useState, useMemo } = React;
+
+        const sortData = (data) => {
+            return data.sort((a, b) => {
+                const dateA = a.date || a.tanggal || '';
+                const dateB = b.date || b.tanggal || '';
+                if (dateA !== dateB) return dateA.localeCompare(dateB);
+
+                const afdA = String(a.afdeling || '').trim();
+                const afdB = String(b.afdeling || '').trim();
+                if (afdA !== afdB) return afdA.localeCompare(afdB);
+
+                const blokA = String(a.blok || '').trim();
+                const blokB = String(b.blok || '').trim();
+                if (blokA !== blokB) return blokA.localeCompare(blokB, undefined, {numeric: true});
+
+                const tphA = String(a.noTPH || '').trim();
+                const tphB = String(b.noTPH || '').trim();
+                return tphA.localeCompare(tphB, undefined, {numeric: true});
+            });
+        };
+
+        const Icon = ({ name, className = "", size = 20 }) => {
+            const icons = {
+                upload: "📤",
+                fileJson: "📄",
+                alertCircle: "⚠️",
+                checkCircle: "✅",
+                truck: "🚛",
+                trees: "🌳",
+                layoutDashboard: "📊",
+                search: "🔍",
+                arrowRightLeft: "↔️",
+                users: "👥",
+                filter: "🔽",
+                x: "❌",
+                plus: "➕",
+                trash2: "🗑️",
+                pieChart: "📈",
+                trendingUp: "📈",
+                arrowDownCircle: "🔽",
+                arrowUpCircle: "🔼",
+                calendar: "📅",
+                download: "⬇️",
+                fileSpreadsheet: "📊",
+                eye: "👁️",
+                camera: "📷",
+                calculator: "🧮",
+                printer: "🖨️",
+                database: "🗄️",
+                refresh: "🔄",
+                clock: "🕒",
+                package: "📦",
+                alertTriangle: "⚠️"
+            };
+            
+            return (
+                <span className={`${className}`} style={{fontSize: `${size}px`, lineHeight: 1}}>
+                    {icons[name] || "📋"}
+                </span>
+            );
+        };
+
+        const StatCard = ({ title, value, icon, color, subValue, subLabel }) => (
+            <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-100 hover:shadow-md transition-shadow relative overflow-hidden group">
+                <div className={`absolute top-0 right-0 p-3 opacity-10 group-hover:scale-110 transition-transform duration-500`}>
+                    <Icon name={icon} size={64} className={color.replace('bg-', 'text-')} />
+                </div>
+                <div className="relative z-10 flex justify-between items-start">
+                    <div>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">{title}</p>
+                        <h3 className="text-2xl font-bold text-gray-800 mt-1">{value}</h3>
+                        {subValue && (
+                            <div className="flex items-center gap-1 mt-2">
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${color.replace('bg-', 'bg-opacity-10 text-')}`}>
+                                    {subValue}
+                                </span>
+                                {subLabel && <span className="text-xs text-gray-400 ml-1">{subLabel}</span>}
+                            </div>
+                        )}
+                    </div>
+                    <div className={`p-3 rounded-lg ${color} bg-opacity-10`}>
+                        <Icon name={icon} size={24} className={color.replace('bg-', 'text-')} />
+                    </div>
+                </div>
+            </div>
+        );
+
+        const Badge = ({ children, color, onClick }) => (
+            <span 
+                onClick={onClick}
+                className={`px-2 py-1 rounded text-xs font-medium ${color} ${onClick ? 'cursor-pointer hover:opacity-80' : ''}`}
+            >
+                {children}
+            </span>
+        );
+
+        const FilterSelect = ({ label, value, options, onChange }) => (
+            <div className="flex flex-col gap-1 min-w-[140px]">
+                <label className="text-xs font-medium text-gray-500 uppercase">{label}</label>
+                <select 
+                    value={value} 
+                    onChange={(e) => onChange(e.target.value)}
+                    className="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block w-full p-2"
+                >
+                    <option value="">Semua</option>
+                    {options.map((opt, idx) => (
+                        <option key={idx} value={opt}>{opt}</option>
+                    ))}
+                </select>
+            </div>
+        );
+        
+        // --- PRINT TEMPLATE COMPONENT ---
+        const PrintTemplate = ({ data, activeTab, filters }) => {
+            const printDate = filters.startDate ? `${filters.startDate}` : new Date().toISOString().slice(0,10);
+            let title = "LAPORAN KERJA HARIAN KEBUN";
+            
+            return (
+                <div id="print-area">
+                    {/* Header Report */}
+                    <div className="mb-4">
+                        <h2 className="text-center font-bold text-lg underline mb-4">{title}</h2>
+                        <div className="text-xs font-bold">
+                            <table className="w-full border-none">
+                                <tbody>
+                                    <tr>
+                                        <td className="border-0 p-0 w-[150px]">Nama Mandor</td>
+                                        <td className="border-0 p-0">: _________________</td>
+                                        <td className="border-0 p-0 w-[150px] pl-8">Estate</td>
+                                        <td className="border-0 p-0">: SAE</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="border-0 p-0">Job Code/Description</td>
+                                        <td className="border-0 p-0">: {activeTab === 'harvest' ? 'PANEN SAWIT' : activeTab === 'transport' ? 'ANGKUT TBS' : 'UMUM'}</td>
+                                        <td className="border-0 p-0 pl-8">Afdeling</td>
+                                        <td className="border-0 p-0">:</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="border-0 p-0">Tanggal</td>
+                                        <td className="border-0 p-0">: {printDate}</td>
+                                        <td className="border-0 p-0 pl-8"></td>
+                                        <td className="border-0 p-0"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {/* Report Table */}
+                    <table className="print-table">
+                        <thead>
+                            <tr>
+                                <th rowSpan="2" style={{width: '80px'}}>Emp. Code</th>
+                                <th rowSpan="2">Nama Karyawan</th>
+                                <th rowSpan="2" style={{width: '50px'}}>Status</th>
+                                <th rowSpan="2" style={{width: '60px'}}>Job Code</th>
+                                <th rowSpan="2">Job Description</th>
+                                <th rowSpan="2" style={{width: '60px'}}>Blok</th>
+                                <th rowSpan="2" style={{width: '60px'}}>Thn Tanam</th>
+                                <th colSpan="2">Hasil Kerja</th>
+                                <th colSpan="2">Upah</th>
+                                <th colSpan="3">Material</th>
+                                <th colSpan="2">Overtime (Lembur)</th>
+                            </tr>
+                            <tr>
+                                <th style={{width: '50px'}}>Sat</th>
+                                <th style={{width: '60px'}}>Fisik</th>
+                                <th style={{width: '40px'}}>Hk</th>
+                                <th>Total (Rp)</th>
+                                <th>Nama Bahan</th>
+                                <th style={{width: '40px'}}>Sat</th>
+                                <th style={{width: '50px'}}>Fisik</th>
+                                <th>Jam</th>
+                                <th>Total (Rp)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {data.map((row, idx) => {
+                                // Logic Mapping
+                                let empCode = '';
+                                let nama = '';
+                                let jobDesc = '';
+                                let blok = '';
+                                // Hasil Kerja vars
+                                let sat = '';
+                                let fisik = '';
+                                // Material vars
+                                let matNama = '';
+                                let matSat = '';
+                                let matFisik = '';
+
+                                if (activeTab === 'harvest') {
+                                    nama = row.namaPemanen || '';
+                                    jobDesc = 'Panen';
+                                    blok = row.blok || '';
+                                    
+                                    // REQ: Hasil kerja kosongkan (per hektar)
+                                    sat = ''; 
+                                    fisik = '';
+                                    
+                                    // REQ: Material diisi Janjang/Buah
+                                    matNama = 'Janjang';
+                                    matSat = 'Buah';
+                                    matFisik = row.jumlahJanjang || '0';
+
+                                } else if (activeTab === 'transport') {
+                                    empCode = row.nopol || ''; 
+                                    nama = row.noKend || 'Driver';
+                                    jobDesc = 'Angkut';
+                                    blok = row.blok || '';
+                                    sat = 'Kg';
+                                    fisik = row.kgTotal ? parseFloat(row.kgTotal).toFixed(0) : '0';
+                                    // Transport material empty usually
+                                    matNama = '';
+                                    matSat = '';
+                                    matFisik = '';
+
+                                } else {
+                                    // Recap mapping
+                                    nama = row.pemanen || '';
+                                    jobDesc = row.status || '';
+                                    blok = row.blok || '';
+                                    sat = 'Jjg';
+                                    fisik = row.panenJanjang || '0';
+                                }
+
+                                return (
+                                    <tr key={idx}>
+                                        <td></td>
+                                        <td>{nama}</td>
+                                        <td></td> 
+                                        <td></td> 
+                                        <td>{jobDesc}</td>
+                                        <td className="text-center">{blok}</td>
+                                        <td></td> 
+                                        {/* Hasil Kerja */}
+                                        <td className="text-center">{sat}</td>
+                                        <td className="text-right">{fisik}</td>
+                                        
+                                        <td></td> {/* Hk */}
+                                        <td></td> {/* Upah Total */}
+                                        
+                                        {/* Material */}
+                                        <td className="text-center">{matNama}</td>
+                                        <td className="text-center">{matSat}</td>
+                                        <td className="text-right">{matFisik}</td>
+
+                                        <td></td> {/* Jam Lembur */}
+                                        <td></td> {/* Total Lembur */}
+                                    </tr>
+                                );
+                            })}
+                            {/* Row Jumlah */}
+                            <tr>
+                                <td colSpan="7" className="text-center font-bold">JUMLAH</td>
+                                <td></td>
+                                <td className="text-right font-bold">
+                                    {/* Jumlah Hasil Kerja Fisik (Kecuali Panen yg dikosongkan tadi) */}
+                                    {activeTab === 'transport' 
+                                        ? data.reduce((acc, curr) => acc + (parseFloat(curr.kgTotal) || 0), 0).toFixed(0)
+                                        : ''
+                                    }
+                                </td>
+                                <td colSpan="2"></td>
+                                {/* Jumlah Material Fisik (Untuk Panen) */}
+                                <td></td>
+                                <td></td>
+                                <td className="text-right font-bold">
+                                    {activeTab === 'harvest' 
+                                        ? data.reduce((acc, curr) => acc + (parseInt(curr.jumlahJanjang) || 0), 0)
+                                        : ''
+                                    }
+                                </td>
+                                <td colSpan="2"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    {/* Signature Section */}
+                    <div className="mt-8 border border-black flex">
+                        <div className="flex-1 border-r border-black">
+                            <div className="border-b border-black p-1 text-center font-bold">Diketahui Oleh</div>
+                            <div className="h-[100px] flex items-end justify-center p-1 font-bold">Estate Manager</div>
+                        </div>
+                        <div className="flex-1 border-r border-black">
+                            <div className="border-b border-black p-1 text-center font-bold">Disetujui Oleh</div>
+                            <div className="flex">
+                                <div className="flex-1 border-r border-black h-[100px] flex items-end justify-center p-1">Askep</div>
+                                <div className="flex-1 h-[100px] flex items-end justify-center p-1">KTU</div>
+                            </div>
+                        </div>
+                        <div className="flex-1 border-r border-black">
+                            <div className="border-b border-black p-1 text-center font-bold">Diperiksa Oleh</div>
+                            <div className="h-[100px] flex items-end justify-center p-1">Asst.</div>
+                        </div>
+                        <div className="flex-1">
+                            <div className="border-b border-black p-1 text-center font-bold">Dibuat Oleh</div>
+                            <div className="h-[100px] flex items-end justify-center p-1">Mandor</div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const ImageModal = ({ src, onClose }) => {
+            if (!src) return null;
+            return (
+                <div 
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 p-4 animate-fade-in backdrop-blur-sm" 
+                    onClick={onClose}
+                >
+                    <div 
+                        className="relative max-w-5xl max-h-[90vh] bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col" 
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="p-2 flex justify-between items-center bg-gray-50 border-b">
+                            <span className="text-sm font-medium text-gray-500 ml-2">Pratinjau Foto</span>
+                            <button 
+                                onClick={onClose} 
+                                className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-1 rounded-full transition-colors"
+                            >
+                                <Icon name="x" size={24} />
+                            </button>
+                        </div>
+                        <div className="p-1 overflow-auto flex-1 bg-black flex items-center justify-center">
+                             <img src={src} alt="Bukti Foto" className="max-w-full max-h-[80vh] object-contain" />
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        function App() {
+            console.log('🚀 App component started');
+            
+            const [activeTab, setActiveTab] = useState('recap');
+            const [files, setFiles] = useState([]);
+            const [harvestRaw, setHarvestRaw] = useState([]);
+            const [transportRaw, setTransportRaw] = useState([]);
+            const [previewImage, setPreviewImage] = useState(null); 
+            const [loading, setLoading] = useState(true);
+            
+            console.log('🔧 App state initialized');
+            
+            // New monitoring states
+            const [monitoringData, setMonitoringData] = useState(null);
+            const [monitoringSummary, setMonitoringSummary] = useState({});
+            const [restanData, setRestanData] = useState([]);
+            
+            // State untuk modal koreksi
+            const [showKoreksiModal, setShowKoreksiModal] = useState(false);
+            const [editingRow, setEditingRow] = useState(null);
+            const [koreksiForm, setKoreksiForm] = useState({
+                koreksiPanen: 0,
+                koreksiKirim: 0,
+                alasan: ''
+            });
+            const [isSubmittingKoreksi, setIsSubmittingKoreksi] = useState(false);
+
+            
+            // API Configuration
+            const API_BASE_URL = window.location.origin + '/lubung-data-SAE/api';
+            
+            // Fungsi untuk modal koreksi
+            const openEditKoreksiModal = (row) => {
+                console.log('Opening koreksi modal for row:', row);
+                setEditingRow(row);
+                setKoreksiForm({
+                    koreksiPanen: row.koreksiPanen || 0,
+                    koreksiKirim: row.koreksiKirim || 0,
+                    alasan: ''
+                });
+                setShowKoreksiModal(true);
+            };
+            
+            const closeKoreksiModal = () => {
+                setShowKoreksiModal(false);
+                setEditingRow(null);
+                setKoreksiForm({
+                    koreksiPanen: 0,
+                    koreksiKirim: 0,
+                    alasan: ''
+                });
+                setIsSubmittingKoreksi(false);
+            };
+            
+            // Handle form changes
+            const handleKoreksiFormChange = (field, value) => {
+                console.log(`Changing ${field} to:`, value);
+                setKoreksiForm(prev => {
+                    const newForm = {
+                        ...prev,
+                        [field]: field === 'alasan' ? value : (parseInt(value) || 0)
+                    };
+                    console.log('New koreksiForm:', newForm);
+                    return newForm;
+                });
+            };
+            
+            const handleKoreksiSubmit = async () => {
+                if (!editingRow || !koreksiForm.alasan.trim()) {
+                    alert('Alasan koreksi harus diisi!');
+                    return;
+                }
+                
+                try {
+                    setIsSubmittingKoreksi(true);
+                    
+                    console.log('Submitting koreksi with data:', {
+                        editingRow: editingRow,
+                        koreksiForm: koreksiForm
+                    });
+                    
+                    const headers = {
+                        'Content-Type': 'application/json'
+                    };
+                    
+                    // Submit koreksi panen jika ada perubahan
+                    if (editingRow.panenJanjang > 0 && editingRow.panenId && koreksiForm.koreksiPanen !== (editingRow.koreksiPanen || 0)) {
+                        console.log('Submitting panen koreksi...');
+                        const panenResponse = await fetch('./api/koreksi.php?action=panen', {
+                            method: 'POST',
+                            headers: headers,
+                            body: JSON.stringify({
+                                id: editingRow.panenId, // <--- PERBAIKAN DISINI
+                                koreksi_panen: koreksiForm.koreksiPanen,
+                                alasan: koreksiForm.alasan
+                            })
+                        });
+                        
+                        const panenResponseText = await panenResponse.text();
+                        console.log('RAW SERVER RESPONSE:', panenResponseText); 
+
+                        let panenResult;
+                        try {
+                            panenResult = JSON.parse(panenResponseText);
+                        } catch (jsonError) {
+                            console.error('JSON Parse Error:', jsonError);
+                            // Tampilkan sebagian text response di alert agar terbaca
+                            throw new Error('Server Error (Bukan JSON): ' + panenResponseText.substring(0, 100));
+                        }
+                        
+                        console.log('Panen koreksi response:', panenResult);
+                        
+                        if (!panenResponse.ok || !panenResult.success) {
+                            throw new Error(panenResult.message || 'Gagal menyimpan koreksi panen');
+                        }
+                    }
+                    
+                    // Submit koreksi pengiriman jika ada perubahan
+                    if (editingRow.transportJanjang > 0 && editingRow.pengirimanId && koreksiForm.koreksiKirim !== (editingRow.koreksiKirim || 0)) {
+                        console.log('Submitting pengiriman koreksi...');
+                        const pengirimanResponse = await fetch('./api/koreksi.php?action=pengiriman', {
+                            method: 'POST',
+                            headers: headers,
+                            body: JSON.stringify({
+                                id: editingRow.pengirimanId, // <--- PERBAIKAN DISINI (Ini yang menyebabkan error 404 sebelumnya)
+                                koreksi_kirim: koreksiForm.koreksiKirim,
+                                alasan: koreksiForm.alasan
+                            })
+                        });
+                        
+                        const pengirimanResponseText = await pengirimanResponse.text();
+                        console.log('Pengiriman response text:', pengirimanResponseText);
+                        
+                        let pengirimanResult;
+                        try {
+                            pengirimanResult = JSON.parse(pengirimanResponseText);
+                        } catch (jsonError) {
+                            console.error('Failed to parse pengiriman response as JSON:', jsonError);
+                            throw new Error('Server mengembalikan response yang tidak valid: ' + pengirimanResponseText.substring(0, 200));
+                        }
+                        
+                        console.log('Pengiriman koreksi response:', pengirimanResult);
+                        
+                        if (!pengirimanResponse.ok || !pengirimanResult.success) {
+                            throw new Error(pengirimanResult.message || 'Gagal menyimpan koreksi pengiriman');
+                        }
+                    }
+                    
+                    alert('Koreksi berhasil disimpan!');
+                    closeKoreksiModal();
+                    
+                    // Reload data
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                    
+                } catch (error) {
+                    alert('Error menyimpan koreksi: ' + error.message);
+                } finally {
+                    setIsSubmittingKoreksi(false);
+                }
+            };
+            
+            // Direct database access - no authentication needed
+            
+            // Fetch monitoring data from new API
+            const fetchMonitoringData = async (dateFrom = null, dateTo = null, afdeling = null) => {
+                try {
+                    setLoading(true);
+                    
+                    // Build query parameters
+                    const params = new URLSearchParams();
+                    params.append('action', 'all'); // Always get all data
+                    if (dateFrom) params.append('date_from', dateFrom);
+                    if (dateTo) params.append('date_to', dateTo);
+                    if (afdeling) params.append('afdeling', afdeling);
+                    
+                    const queryString = params.toString();
+                    const url = `${API_BASE_URL}/direct_data.php?type=all${queryString ? '&' + queryString : ''}`;
+                    
+                    console.log('🔄 Fetching monitoring data from:', url);
+                    
+                    // Fetch monitoring data
+                    const response = await fetch(url, {
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const responseText = await response.text();
+                    console.log('Raw monitoring response:', responseText.substring(0, 200) + '...');
+                    
+                    let monitoringData;
+                    try {
+                        monitoringData = JSON.parse(responseText);
+                    } catch (e) {
+                        throw new Error('Invalid JSON response: ' + responseText.substring(0, 100));
+                    }
+                    
+                    if (monitoringData.success) {
+                        const data = monitoringData.data;
+                        
+                        // Transform data to match existing format
+                        const transformedPanen = (data.panen || []).map(item => ({
+                            date: item.date,
+                            afdeling: item.afdeling,
+                            blok: item.blok,
+                            noTPH: item.noTPH,
+                            namaPemanen: item.namaPemanen,
+                            nikPemanen: item.nikPemanen,
+                            namaKerani: item.namaKerani,
+                            jmlhJanjang: parseInt(item.jmlhJanjang) || 0,
+                            jumlahJanjang: parseInt(item.jmlhJanjang) || 0, // Alias untuk kompatibilitas
+                            avgBjr: parseFloat(item.avgBjr) || 15,
+                            bjr: parseFloat(item.avgBjr) || 15, // Alias untuk kompatibilitas
+                            totalKg: parseFloat(item.totalKg) || 0,
+                            kgTotal: parseFloat(item.totalKg) || 0, // Alias untuk kompatibilitas
+                            kgBerondolan: parseFloat(item.kgBerondolan) || 0,
+                            noAncak: item.noAncak,
+                            jam: item.jam,
+                            koordinat: item.koordinat,
+                            lastModified: item.lastModified,
+                            tipeAplikasi: 'database',
+                            id: item.id,
+                            original_id: item.original_id,
+                            // Data grading
+                            mainFoto: item.mainFoto,
+                            matang: parseInt(item.matang) || 0,
+                            mengkal: parseInt(item.mengkal) || 0,
+                            mentah: parseInt(item.mentah) || 0,
+                            lewatMatang: parseInt(item.lewatMatang) || 0,
+                            abnormal: parseInt(item.abnormal) || 0,
+                            seranganHama: parseInt(item.seranganHama) || 0,
+                            tangkaiPanjang: parseInt(item.tangkaiPanjang) || 0,
+                            janjangKosong: parseInt(item.janjangKosong) || 0,
+                            // Data foto
+                            foto_matang: item.foto_matang,
+                            foto_mengkal: item.foto_mengkal,
+                            foto_mentah: item.foto_mentah,
+                            foto_lewatMatang: item.foto_lewatMatang,
+                            foto_abnormal: item.foto_abnormal,
+                            foto_seranganHama: item.foto_seranganHama,
+                            foto_tangkaiPanjang: item.foto_tangkaiPanjang,
+                            foto_janjangKosong: item.foto_janjangKosong,
+                            foto_kgBerondolan: item.foto_kgBerondolan
+                        }));
+                        
+                        const transformedPengiriman = (data.pengiriman || []).map(item => ({
+                            date: item.date,
+                            afdeling: item.afdeling,
+                            blok: item.blok,
+                            noTPH: item.noTPH,
+                            namaKerani: item.namaKerani,
+                            nikKerani: item.nikKerani,
+                            noKend: item.noKend,
+                            nopol: item.nopol,
+                            jmlhJanjang: parseInt(item.jmlhJanjang) || 0,
+                            jumlahJanjang: parseInt(item.jmlhJanjang) || 0, // Alias untuk kompatibilitas
+                            kgBrd: parseFloat(item.kgBrd) || 0,
+                            kgBerondolan: parseFloat(item.kgBrd) || 0, // Alias untuk kompatibilitas
+                            totalKg: parseFloat(item.totalKg) || 0,
+                            kgTotal: parseFloat(item.totalKg) || 0, // Alias untuk kompatibilitas
+                            bjr: parseFloat(item.bjr) || 0,
+                            waktu: item.waktu,
+                            koordinat: item.koordinat,
+                            tipeAplikasi: item.tipeAplikasi || 'database',
+                            id: item.id,
+                            original_id: item.original_id,
+                            original_filename: item.original_filename
+                        }));
+                        
+                        // Set all data
+                        setHarvestRaw(transformedPanen);
+                        setTransportRaw(transformedPengiriman);
+                        
+                        // Store monitoring data for analytics
+                        setMonitoringData(data);
+                        setRestanData(data.restan || []);
+                        setMonitoringSummary(data.summary || {});
+                        
+                        // Create simulated uploaded files for compatibility
+                        setFiles([
+                            {
+                                name: `Monitoring_Data_${data.date_range?.from || 'recent'}_to_${data.date_range?.to || 'today'}.json`,
+                                content: { panen: transformedPanen, pengiriman: transformedPengiriman, restan: data.restan },
+                                size: (transformedPanen.length + transformedPengiriman.length) * 100
+                            }
+                        ]);
+                        
+                        console.log(`✅ Loaded monitoring data: ${transformedPanen.length} panen, ${transformedPengiriman.length} pengiriman, ${(data.restan || []).length} restan records`);
+                        
+                    } else {
+                        throw new Error(monitoringData.message || 'Failed to fetch monitoring data');
+                    }
+                } catch (error) {
+                    console.error('❌ Monitoring API error:', error);
+                    
+                    // Fallback: Show empty state but don't alert
+                    setHarvestRaw([]);
+                    setTransportRaw([]);
+                    setRestanData([]);
+                    setMonitoringSummary({});
+                    setFiles([]);
+                    
+                    // Only show alert for serious errors, not just "no data"
+                    if (!error.message.includes('404') && !error.message.includes('No data')) {
+                        alert('Gagal mengambil data monitoring: ' + error.message + '\n\nSistem akan menampilkan data kosong.');
+                    }
+                } finally {
+                    setLoading(false);
+                }
+            };
+            
+            React.useEffect(() => {
+                // Load data from database directly on component mount
+                const loadDatabaseData = async () => {
+                    console.log('🔄 Starting to load data from database...');
+                    
+                    try {
+                        setLoading(true);
+                        
+                        console.log('📡 Fetching from API...');
+                        const response = await fetch('./api/direct_data.php?type=all', {
+                            method: 'GET',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json',
+                            }
+                        });
+                        
+                        console.log('📡 Response status:', response.status);
+                        
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
+                        
+                        const result = await response.json();
+                        console.log('📡 API Response:', result);
+                        
+                        if (result.success && result.data) {
+                            const { panen, pengiriman } = result.data;
+                            
+                            console.log(`✅ Success! Loaded ${panen.length} panen records and ${pengiriman.length} pengiriman records`);
+                            
+                            // NORMALISASI DATA UNTUK MENGATASI INCONSISTENT MAPPING
+                            const normalizedPanen = panen.map(item => {
+                                const janjang = parseInt(item.jmlhJanjang || item.jumlah_janjang || item.jumlahJanjang) || 0;
+                                const bjrVal = parseFloat(item.avgBjr || item.bjr) || 0;
+                                const kgBrd = parseFloat(item.kgBerondolan || item.kg_brd || item.kg_berondolan) || 0;
+                                // Kalkulasi Kg Total jika 0/null untuk mengatasi delay loading
+                                let total = parseFloat(item.totalKg || item.kg_total || item.kgTotal) || 0;
+                                if (total === 0 && janjang > 0 && bjrVal > 0) {
+                                    total = (janjang * bjrVal) + kgBrd;
+                                }
+                                
+                                return {
+                                    ...item,
+                                    // KUNCI PERBAIKAN: Pastikan alias konsisten
+                                    jumlahJanjang: janjang,
+                                    jmlhJanjang: janjang,
+                                    panenJanjang: janjang,
+                                    koreksiPanen: parseInt(item.koreksiPanen || 0),
+                                    bjr: bjrVal,
+                                    avgBjr: bjrVal,
+                                    kgTotal: total,
+                                    totalKg: total,
+                                    kgBerondolan: kgBrd,
+                                    tipeAplikasi: 'database'
+                                };
+                            });
+                            
+                            const normalizedPengiriman = pengiriman.map(item => {
+                                const janjang = parseInt(item.jmlhJanjang || item.jumlah_janjang || item.jumlahJanjang) || 0;
+                                const bjrVal = parseFloat(item.bjr) || 0;
+                                const kgBrd = parseFloat(item.kgBrd || item.kg_brd || item.kg_berondolan) || 0;
+                                let total = parseFloat(item.totalKg || item.kg_total || item.kgTotal) || 0;
+                                if (total === 0 && janjang > 0 && bjrVal > 0) {
+                                    total = (janjang * bjrVal) + kgBrd;
+                                }
+                                
+                                return {
+                                    ...item,
+                                    jumlahJanjang: janjang,
+                                    jmlhJanjang: janjang,
+                                    transportJanjang: janjang,
+                                    koreksiKirim: parseInt(item.koreksiKirim || 0),
+                                    bjr: bjrVal,
+                                    kgTotal: total,
+                                    totalKg: total,
+                                    kgBerondolan: kgBrd,
+                                    tipeAplikasi: 'database'
+                                };
+                            });
+                            
+                            // Set data yang sudah dinormalisasi
+                            setHarvestRaw(normalizedPanen);
+                            setTransportRaw(normalizedPengiriman);
+                            
+                            // Create simulated file entries for compatibility
+                            setFiles([
+                                {
+                                    name: `Database_Panen_${normalizedPanen.length}_records.json`,
+                                    content: normalizedPanen,
+                                    size: normalizedPanen.length * 100
+                                },
+                                {
+                                    name: `Database_Pengiriman_${normalizedPengiriman.length}_records.json`,
+                                    content: normalizedPengiriman,
+                                    size: normalizedPengiriman.length * 100
+                                }
+                            ]);
+                            
+                        } else {
+                            console.log('❌ API Success but no data:', result);
+                            setHarvestRaw([]);
+                            setTransportRaw([]);
+                            setFiles([]);
+                        }
+                        
+                    } catch (error) {
+                        console.error('❌ Database load error:', error);
+                        alert('Error loading data from database: ' + error.message + '\n\nPlease check console for details.');
+                        setHarvestRaw([]);
+                        setTransportRaw([]);
+                        setFiles([]);
+                    } finally {
+                        setLoading(false);
+                        console.log('✅ Data loading completed');
+                    }
+                };
+                
+                // Add a small delay to ensure DOM is ready
+                setTimeout(() => {
+                    loadDatabaseData();
+                }, 100);
+            }, []);
+
+            
+            const [filters, setFilters] = useState({
+                afdeling: '',
+                blok: '',
+                pemanen: '',
+                namaKerani: '', 
+                noKend: '', // Tambahkan state untuk noKend
+                status: '',
+                startDate: '', 
+                endDate: ''     
+            });
+            const [searchTerm, setSearchTerm] = useState('');
+
+            // State untuk sorting
+            const [sortConfig, setSortConfig] = useState({
+                key: null,
+                direction: 'asc' // 'asc' atau 'desc'
+            });
+
+            const handleFiles = (event) => {
+                const newFiles = Array.from(event.target.files);
+                const readers = newFiles.map(file => {
+                    return new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = (e) => resolve({ name: file.name, content: JSON.parse(e.target.result), size: file.size });
+                        reader.readAsText(file);
+                    });
+                });
+
+                Promise.all(readers).then(results => {
+                    processUploadedFiles(results);
+                });
+            };
+            
+            const handleImportedFiles = (importedFiles) => {
+                try {
+                    console.log('Processing imported files:', importedFiles);
+                    
+                    if (!Array.isArray(importedFiles) || importedFiles.length === 0) {
+                        alert('Error: No valid files to import');
+                        return;
+                    }
+                    
+                    const processedResults = importedFiles.map(file => {
+                        if (!file.jsonData) {
+                            console.error('File missing jsonData:', file);
+                            throw new Error(`File ${file.name} missing JSON data`);
+                        }
+                        return {
+                            name: file.name,
+                            content: file.jsonData,
+                            size: file.size || 0
+                        };
+                    });
+                    
+                    processUploadedFiles(processedResults);
+                    
+                    setTimeout(() => {
+                        alert(`Berhasil mengimpor ${importedFiles.length} file dari File Manager!`);
+                    }, 500);
+                    
+                } catch (error) {
+                    console.error('Error processing imported files:', error);
+                    alert('Error processing imported files: ' + error.message);
+                }
+            };
+            
+            const processUploadedFiles = (results) => {
+                const processedHarvest = [...harvestRaw];
+                const processedTransport = [...transportRaw];
+                const newFileMeta = [...files];
+
+                results.forEach(file => {
+                    if (files.some(f => f.name === file.name)) return; 
+
+                    const data = file.content;
+                    let type = 'unknown';
+                    let itemCount = 0;
+                    let date = '-';
+
+                    if (data.tipeAplikasi === "TRANSPORT_MONITORING" || (data.header && data.header.nopol)) {
+                        type = 'transport';
+                        const headerDate = data.header?.tanggal || ''; 
+                        const afdeling = data.header?.afdeling || '-';
+                        const nopol = data.header?.nopol || '-';
+                        const noKend = data.header?.nomorKendaraan || '-';
+                        const namaKerani = data.header?.namaKerani || '-'; // Ambil Nama Kerani dari header transport
+                        
+                        const items = (data.items || []).map(item => ({
+                            ...item,
+                            sourceFile: file.name,
+                            afdeling: afdeling,
+                            date: headerDate,
+                            nopol: nopol,
+                            noKend: noKend,
+                            namaKerani: namaKerani, // Simpan Nama Kerani
+                            bjr: item.bjr || 0,
+                            kg: item.kg || 0, 
+                            kgTotal: item.kgTotal || item.kg_total || ((parseInt(item.jumlahJanjang || 0) * parseFloat(item.bjr || 0)) + parseFloat(item.kgBerondolan || 0)),
+                            kgBerondolan: item.kgBerondolan || item.kg_berondolan || 0,
+                            foto: item.foto || null 
+                        }));
+                        processedTransport.push(...items);
+                        itemCount = items.length;
+                        date = headerDate;
+                    } 
+                    else if (data.items && data.items.length > 0 && data.items[0].namaPemanen) {
+                        type = 'harvest';
+                        const headerDate = data.header?.tanggalPemeriksaan || '';
+                        const afdeling = data.header?.afdeling || '-';
+                        const namaKerani = data.header?.namaKerani || '-';
+
+                        const items = data.items.map(item => ({
+                            ...item,
+                            sourceFile: file.name,
+                            afdeling: afdeling,
+                            date: headerDate,
+                            namaKerani: namaKerani, 
+                            matang: item.matang || 0,
+                            mengkal: item.mengkal || 0,
+                            mentah: item.mentah || 0,
+                            lewatMatang: item.lewatMatang || 0,
+                            abnormal: item.abnormal || 0,
+                            seranganHama: item.seranganHama || 0,
+                            tangkaiPanjang: item.tangkaiPanjang || 0,
+                            janjangKosong: item.janjangKosong || 0,
+                            kgBerondolan: item.kgBerondolan || item.kg_berondolan || item.kg_brd || 0,
+                            bjr: item.bjr || 0,
+                            kgTotal: item.kgTotal || item.kg_total || 0,
+                            noAncak: item.noAncak || '-',
+                            mainFoto: item.mainFoto || null 
+                        }));
+                        processedHarvest.push(...items);
+                        itemCount = items.length;
+                        date = headerDate;
+                    }
+
+                    newFileMeta.push({
+                        name: file.name,
+                        type: type,
+                        count: itemCount,
+                        date: date,
+                        uploadTime: new Date().toLocaleTimeString()
+                    });
+                });
+
+                setHarvestRaw(processedHarvest);
+                setTransportRaw(processedTransport);
+                setFiles(newFileMeta);
+            };
+
+
+
+            const isInDateRange = (itemDate) => {
+                if (!filters.startDate && !filters.endDate) return true;
+                if (!itemDate) return false;
+                const current = new Date(itemDate).getTime();
+                const start = filters.startDate ? new Date(filters.startDate).getTime() : 0;
+                const end = filters.endDate ? new Date(filters.endDate).getTime() : Infinity;
+                return current >= start && current <= end;
+            };
+
+            const dateFilteredHarvest = useMemo(() => {
+                return harvestRaw.filter(item => isInDateRange(item.date));
+            }, [harvestRaw, filters.startDate, filters.endDate]);
+
+            const dateFilteredTransport = useMemo(() => {
+                return transportRaw.filter(item => isInDateRange(item.date));
+            }, [transportRaw, filters.startDate, filters.endDate]);
+
+            const normalizeAfdeling = (val) => {
+                if (!val) return '';
+                let str = String(val).trim().toUpperCase();
+                const romanMap = { 'I': '1', 'II': '2', 'III': '3', 'IV': '4', 'V': '5', 'VI': '6' };
+                return romanMap[str] || str;
+            };
+
+            const normalizeText = (val) => String(val || '').trim().toUpperCase();
+
+            const recapData = useMemo(() => {
+                
+                // 1. HELPER
+                const getStartOfDay = (dateStr) => {
+                    if (!dateStr) return 0;
+                    const d = new Date(dateStr);
+                    d.setHours(0, 0, 0, 0);
+                    return d.getTime(); // Mengembalikan NUMBER (Timestamp)
+                };
+
+                const normalizeTPH = (val) => {
+                    if (val === null || val === undefined) return '';
+                    const num = parseInt(val);
+                    if (!isNaN(num)) return String(num); 
+                    return String(val).trim().toUpperCase();
+                };
+
+                const normalizeBlok = (val) => {
+                    if (!val) return '';
+                    return String(val).replace(/\s+/g, '').toUpperCase();
+                };
+
+                const normalizeAfdelingLocal = (val) => {
+                    if (!val) return '';
+                    let str = String(val).trim().toUpperCase();
+                    const romanMap = { 'I': '1', 'II': '2', 'III': '3', 'IV': '4', 'V': '5', 'VI': '6' };
+                    return romanMap[str] || str;
+                };
+
+                // 2. GROUPING DATA (PANEN)
+                const harvestMap = {};
+                
+                dateFilteredHarvest.forEach(item => {
+                    const normAfd = normalizeAfdelingLocal(item.afdeling);
+                    const normBlok = normalizeBlok(item.blok);
+                    const normTPH = normalizeTPH(item.noTPH);
+                    const dateKey = item.date; 
+                    
+                    const uniqueKey = `${dateKey}|${normAfd}|${normBlok}|${normTPH}`;
+
+                    if (!harvestMap[uniqueKey]) {
+                        harvestMap[uniqueKey] = {
+                            key: uniqueKey,
+                            dbId: item.id, 
+                            date: item.date,
+                            dateOnly: getStartOfDay(item.date), // INI ADALAH NUMBER
+                            afdeling: normAfd,
+                            blok: normBlok,
+                            noTPH: normTPH,
+                            original_blok: item.blok,
+                            panenJanjang: 0,
+                            koreksiPanen: 0,
+                            totalKgBrdPanen: 0,
+                            pemanenSet: new Set(),
+                            bjrValues: [],
+                            matchedTransport: null,
+                            matched: false
+                        };
+                    }
+                    
+                    harvestMap[uniqueKey].panenJanjang += parseInt(item.jumlahJanjang || 0);
+                    harvestMap[uniqueKey].koreksiPanen += parseInt(item.koreksiPanen || 0);
+                    harvestMap[uniqueKey].totalKgBrdPanen += parseFloat(item.kgBerondolan || 0);
+                    if (item.namaPemanen) harvestMap[uniqueKey].pemanenSet.add(item.namaPemanen);
+                    if (item.bjr) harvestMap[uniqueKey].bjrValues.push(parseFloat(item.bjr));
+                });
+
+                // 3. GROUPING DATA (ANGKUT)
+                const transportMap = {};
+
+                dateFilteredTransport.forEach(item => {
+                    const normAfd = normalizeAfdelingLocal(item.afdeling);
+                    const normBlok = normalizeBlok(item.blok);
+                    const normTPH = normalizeTPH(item.noTPH);
+                    const dateKey = item.date;
+
+                    const uniqueKey = `${dateKey}|${normAfd}|${normBlok}|${normTPH}`;
+
+                    if (!transportMap[uniqueKey]) {
+                        transportMap[uniqueKey] = {
+                            key: uniqueKey,
+                            dbId: item.id, 
+                            date: item.date,
+                            dateOnly: getStartOfDay(item.date), // INI ADALAH NUMBER
+                            afdeling: normAfd,
+                            blok: normBlok,
+                            noTPH: normTPH,
+                            original_blok: item.blok,
+                            transportJanjang: 0,
+                            koreksiKirim: 0,
+                            totalKgBrdTransport: 0,
+                            originalBjr: parseFloat(item.bjr || 0),
+                            matched: false
+                        };
+                    }
+                    transportMap[uniqueKey].transportJanjang += parseInt(item.jumlahJanjang || 0);
+                    transportMap[uniqueKey].koreksiKirim += parseInt(item.koreksiKirim || 0);
+                    transportMap[uniqueKey].totalKgBrdTransport += parseFloat(item.kgBerondolan || 0);
+                });
+
+                // 4. GROUPING LOCATION
+                const locationGroups = {};
+
+                Object.values(harvestMap).forEach(h => {
+                    const locKey = `${h.afdeling}-${h.blok}-${h.noTPH}`;
+                    if(!locationGroups[locKey]) locationGroups[locKey] = { harvests: [], transports: [] };
+                    locationGroups[locKey].harvests.push(h);
+                });
+
+                Object.values(transportMap).forEach(t => {
+                    const locKey = `${t.afdeling}-${t.blok}-${t.noTPH}`;
+                    if(!locationGroups[locKey]) locationGroups[locKey] = { harvests: [], transports: [] };
+                    locationGroups[locKey].transports.push(t);
+                });
+
+                const finalResults = [];
+
+                // 5. MATCHING
+                Object.values(locationGroups).forEach(group => {
+                    const { harvests, transports } = group;
+
+                    harvests.sort((a,b) => a.dateOnly - b.dateOnly);
+                    transports.sort((a,b) => a.dateOnly - b.dateOnly);
+
+                    transports.forEach(t => {
+                        let bestHarvestIndex = -1;
+                        for(let i = 0; i < harvests.length; i++) {
+                            const h = harvests[i];
+                            if (!h.matched && h.dateOnly <= t.dateOnly) {
+                                bestHarvestIndex = i;
+                            }
+                        }
+                        if (bestHarvestIndex !== -1) {
+                            const h = harvests[bestHarvestIndex];
+                            h.matched = true;
+                            h.matchedTransport = t;
+                            t.matched = true;
+                        }
+                    });
+
+                    // 6. RESULT GENERATION
+                    harvests.forEach(h => {
+                        const transportJanjang = h.matchedTransport ? h.matchedTransport.transportJanjang : 0;
+                        const transportKoreksi = h.matchedTransport ? h.matchedTransport.koreksiKirim : 0;
+                        
+                        const panenTotal = h.panenJanjang + h.koreksiPanen;
+                        const transportTotal = transportJanjang + transportKoreksi;
+                        const selisih = transportTotal - panenTotal;
+                        const avgBjr = h.bjrValues.length > 0 ? h.bjrValues.reduce((a,b)=>a+b,0)/h.bjrValues.length : 15;
+                        
+                        // --- PERBAIKAN LOGIC DELAY DISINI ---
+                        let delay = 'Belum Angkut';
+                        let delayDays = 0;
+                        
+                        if (h.matchedTransport) {
+                            // Kedua variabel ini sudah NUMBER, jadi langsung dikurang saja
+                            const diffTime = Math.abs(h.matchedTransport.dateOnly - h.dateOnly);
+                            delayDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                            delay = delayDays; 
+                        } else {
+                            const today = new Date();
+                            today.setHours(0,0,0,0); // Reset jam hari ini agar akurat
+                            
+                            // PERBAIKAN UTAMA: Hapus .getTime() dari h.dateOnly karena dia sudah number
+                            const diffTime = Math.abs(today.getTime() - h.dateOnly); 
+                            
+                            delayDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            delay = 'Belum Angkut'; // Tetap string untuk display
+                        }
+
+                        // Status Logic
+                        let status = 'Restan';
+                        if (h.matchedTransport) {
+                            if (selisih === 0) {
+                                status = delayDays <= 1 ? 'Sesuai' : 'Restan (Delay)';
+                            } else if (selisih > 0) {
+                                status = delayDays <= 1 ? 'Kelebihan' : 'Kelebihan (Delay)';
+                            } else {
+                                status = delayDays <= 1 ? 'Restan (Kurang)' : 'Restan (Kurang + Delay)';
+                            }
+                        } else {
+                            // Belum diangkut - cek delay dari tanggal panen
+                            // Tetap gunakan kategori "Restan" agar masuk filter yang sama
+                            if (delayDays <= 1) {
+                                status = 'Restan'; 
+                            } else {
+                                status = 'Restan (Delay)';
+                            }
+                        }
+
+                        const realSelisih = h.matchedTransport ? selisih : -panenTotal;
+                        const kgRestanValue = realSelisih < 0 ? (Math.abs(realSelisih) * avgBjr) : 0;
+
+                        finalResults.push({
+                            id: h.key,
+                            panenId: h.dbId, 
+                            pengirimanId: h.matchedTransport ? h.matchedTransport.dbId : null,
+                            date: h.date, 
+                            afdeling: h.afdeling,
+                            blok: h.original_blok || h.blok,
+                            noTPH: h.noTPH,
+                            pemanen: Array.from(h.pemanenSet).join(', ') || '-',
+                            panenJanjang: h.panenJanjang,
+                            koreksiPanen: h.koreksiPanen,
+                            panenTotal: panenTotal,
+                            transportJanjang: transportJanjang,
+                            koreksiKirim: transportKoreksi,
+                            transportTotal: transportTotal,
+                            selisih: realSelisih,
+                            kgRestanValue: kgRestanValue,
+                            avgBjr: avgBjr,
+                            status: status,
+                            delay: delay,
+                            dateOnly: h.dateOnly
+                        });
+                    });
+
+                    // Unmatched Transports
+                    transports.forEach(t => {
+                        if (!t.matched) {
+                            const transportTotal = t.transportJanjang + t.koreksiKirim;
+                            finalResults.push({
+                                id: `unmatched-${t.key}`,
+                                panenId: null,
+                                pengirimanId: t.dbId,
+                                date: t.date,
+                                afdeling: t.afdeling,
+                                blok: t.original_blok || t.blok,
+                                noTPH: t.noTPH,
+                                pemanen: '-', 
+                                panenJanjang: 0,
+                                koreksiPanen: 0,
+                                panenTotal: 0,
+                                transportJanjang: t.transportJanjang,
+                                koreksiKirim: t.koreksiKirim,
+                                transportTotal: transportTotal,
+                                selisih: transportTotal,
+                                kgRestanValue: 0,
+                                avgBjr: t.originalBjr || 0,
+                                status: 'Kelebihan (Tanpa Data Panen)',
+                                delay: 0,
+                                dateOnly: t.dateOnly
+                            });
+                        }
+                    });
+                });
+
+                return finalResults.sort((a, b) => {
+                    const dateDiff = a.dateOnly - b.dateOnly;
+                    if(dateDiff !== 0) return dateDiff;
+                    const afdDiff = String(a.afdeling).localeCompare(String(b.afdeling));
+                    if(afdDiff !== 0) return afdDiff;
+                    const blokDiff = String(a.blok).localeCompare(String(b.blok), undefined, {numeric: true});
+                    if(blokDiff !== 0) return blokDiff;
+                    return String(a.noTPH).localeCompare(String(b.noTPH), undefined, {numeric: true});
+                });
+
+            }, [dateFilteredHarvest, dateFilteredTransport]);
+            
+            const finalDisplayData = useMemo(() => {
+                let data = activeTab === 'recap' ? recapData : activeTab === 'harvest' ? dateFilteredHarvest : dateFilteredTransport;
+
+                if (searchTerm) {
+                    const lower = searchTerm.toLowerCase();
+                    data = data.filter(item => 
+                        (item.blok && String(item.blok).toLowerCase().includes(lower)) ||
+                        (item.noTPH && String(item.noTPH).toLowerCase().includes(lower)) ||
+                        (item.namaPemanen && item.namaPemanen.toLowerCase().includes(lower)) ||
+                        (item.pemanen && item.pemanen.toLowerCase().includes(lower))
+                    );
+                }
+
+                if (filters.afdeling) data = data.filter(i => i.afdeling === filters.afdeling);
+                if (filters.blok) data = data.filter(i => i.blok === filters.blok);
+                
+                if (filters.status && activeTab === 'recap') {
+                    if (filters.status === 'Restan') {
+                        // Filter untuk semua jenis restan (termasuk yang belum diangkut dengan delay)
+                        data = data.filter(i => i.status && i.status.includes('Restan'));
+                    } else {
+                        // Filter untuk status spesifik
+                        data = data.filter(i => i.status === filters.status);
+                    }
+                }
+
+                if (filters.pemanen && activeTab !== 'transport') {
+                    data = data.filter(i => i.namaPemanen === filters.pemanen || (i.pemanen && i.pemanen.includes(filters.pemanen)));
+                }
+
+                if (filters.namaKerani && (activeTab === 'harvest' || activeTab === 'transport')) {
+                    data = data.filter(i => i.namaKerani === filters.namaKerani);
+                }
+
+                if (filters.noKend && activeTab === 'transport') {
+                    data = data.filter(i => i.noKend === filters.noKend);
+                }
+
+                return sortData([...data]);
+
+            }, [recapData, dateFilteredHarvest, dateFilteredTransport, activeTab, searchTerm, filters]);
+
+            // Fungsi untuk sorting
+            const handleSort = (key) => {
+                let direction = 'asc';
+                if (sortConfig.key === key && sortConfig.direction === 'asc') {
+                    direction = 'desc';
+                }
+                setSortConfig({ key, direction });
+            };
+
+            // Fungsi untuk sort data
+            const getSortedData = (data) => {
+                if (!sortConfig.key) {
+                    return sortData([...data]); // Return default sorting
+                }
+
+                const sortedData = [...data].sort((a, b) => {
+                    let aVal = a[sortConfig.key];
+                    let bVal = b[sortConfig.key];
+
+                    // Handle different data types
+                    if (sortConfig.key === 'date') {
+                        aVal = new Date(aVal || 0);
+                        bVal = new Date(bVal || 0);
+                    } else if (['panenJanjang', 'transportJanjang', 'selisih', 'kgRestanValue', 'delay', 'jumlahJanjang', 'bjr', 'kgTotal', 'matang', 'mengkal', 'mentah', 'lewatMatang', 'abnormal', 'seranganHama', 'tangkaiPanjang', 'janjangKosong', 'kgBerondolan', 'koreksiPanen', 'koreksiKirim'].includes(sortConfig.key)) {
+                        // Numeric sorting
+                        aVal = parseFloat(aVal || 0);
+                        bVal = parseFloat(bVal || 0);
+                    } else if (['blok', 'noTPH'].includes(sortConfig.key)) {
+                        // Alphanumeric sorting (untuk blok dan TPH)
+                        aVal = String(aVal || '').toLowerCase();
+                        bVal = String(bVal || '').toLowerCase();
+                        return sortConfig.direction === 'asc' 
+                            ? aVal.localeCompare(bVal, undefined, {numeric: true})
+                            : bVal.localeCompare(aVal, undefined, {numeric: true});
+                    } else {
+                        // String sorting
+                        aVal = String(aVal || '').toLowerCase();
+                        bVal = String(bVal || '').toLowerCase();
+                        return sortConfig.direction === 'asc' 
+                            ? aVal.localeCompare(bVal)
+                            : bVal.localeCompare(aVal);
+                    }
+
+                    // Numeric and date comparison
+                    if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+                    if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+                    return 0;
+                });
+
+                return sortedData;
+            };
+
+            // Update finalDisplayData untuk menggunakan sorting
+            const sortedDisplayData = useMemo(() => {
+                return getSortedData(finalDisplayData);
+            }, [finalDisplayData, sortConfig]);
+
+            const handleExport = () => {
+                if (sortedDisplayData.length === 0) {
+                    alert("Tidak ada data untuk diexport!");
+                    return;
+                }
+                let headers = [];
+                let rows = [];
+
+                if (activeTab === 'recap') {
+                    headers = ['Tanggal', 'Afdeling', 'Blok', 'TPH', 'Pemanen', 'Jjg Panen', 'Jjg Angkut', 'Selisih', 'KG Restan', 'Delay (hari)', 'Status'];
+                    rows = sortedDisplayData.map(item => [
+                        item.date, item.afdeling, item.blok, item.noTPH, item.pemanen, 
+                        item.panenJanjang, item.transportJanjang, item.selisih,
+                        item.selisih < 0 ? ((Math.abs(item.selisih) * (item.avgBjr || 15)) + (item.kgBrdRestan || 0)).toFixed(2) : 0,
+                        item.delay || 0,
+                        item.status
+                    ]);
+                } else if (activeTab === 'harvest') {
+                    headers = [
+                        'Tanggal', 'Afdeling', 'Blok', 'TPH', 'Pemanen', 'NIK', 'Kerani', 'Janjang Total', 'BJR', 'Kg Total',
+                        'Matang', 'Mengkal', 'Mentah', 'Lewat Matang', 'Abnormal', 'Hama', 'Tangkai Pjg', 'Jjg Kosong',
+                        'Brondolan (Kg)', 'Ancak'
+                    ];
+                    rows = sortedDisplayData.map(item => [
+                        item.date, item.afdeling, item.blok, item.noTPH, 
+                        item.namaPemanen, item.nikPemanen, item.namaKerani, item.jumlahJanjang, item.bjr || 0, item.kgTotal || 0,
+                        item.matang, item.mengkal, item.mentah, item.lewatMatang, item.abnormal, item.seranganHama, item.tangkaiPanjang, item.janjangKosong,
+                        item.kgBerondolan, item.noAncak
+                    ]);
+                } else {
+                    headers = ['Tanggal', 'Waktu', 'Afdeling', 'Blok', 'TPH', 'Nopol', 'No Kend', 'Janjang Muat', 'BJR', 'Kg Total', 'Kg Berondolan', 'Koordinat'];
+                    rows = sortedDisplayData.map(item => [
+                        item.date, item.waktu, item.afdeling, item.blok, item.noTPH, 
+                        item.nopol, item.noKend,
+                        item.jumlahJanjang, item.bjr || 0, item.kgTotal || 0, item.kgBerondolan || 0, item.koordinat
+                    ]);
+                }
+
+                const tableContent = `
+                    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+                    <head>
+                        <meta http-equiv="content-type" content="text/plain; charset=UTF-8"/>
+                        <style>
+                            td { mso-number-format:"\@"; }
+                        </style>
+                    </head>
+                    <body>
+                        <table border="1">
+                            <thead>
+                                <tr style="background-color: #cccccc; font-weight: bold;">
+                                    ${headers.map(h => `<th>${h}</th>`).join('')}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rows.map(row => `<tr>${row.map(cell => `<td>${cell === null || cell === undefined ? '' : cell}</td>`).join('')}</tr>`).join('')}
+                            </tbody>
+                        </table>
+                    </body>
+                    </html>
+                `;
+
+                const blob = new Blob([tableContent], { type: 'application/vnd.ms-excel' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.setAttribute("href", url);
+                link.setAttribute("download", `Laporan_${activeTab}_${new Date().toISOString().slice(0,10)}.xls`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+
+            const filterOptions = useMemo(() => {
+                const source = activeTab === 'recap' ? recapData : activeTab === 'harvest' ? dateFilteredHarvest : dateFilteredTransport;
+                return {
+                    afdeling: [...new Set(source.map(i => i.afdeling))].filter(Boolean).sort(),
+                    blok: [...new Set(source.map(i => i.blok))].filter(Boolean).sort(),
+                    pemanen: activeTab !== 'transport' ? [...new Set(source.flatMap(i => i.namaPemanen ? [i.namaPemanen] : i.pemanen ? i.pemanen.split(', ') : []))].filter(Boolean).sort() : [],
+                    // Update: Kerani available in Harvest OR Transport
+                    namaKerani: (activeTab === 'harvest' || activeTab === 'transport') ? [...new Set(source.map(i => i.namaKerani))].filter(Boolean).sort() : [],
+                    // Update: No Kend available in Transport
+                    noKend: activeTab === 'transport' ? [...new Set(source.map(i => i.noKend))].filter(Boolean).sort() : []
+                };
+            }, [recapData, dateFilteredHarvest, dateFilteredTransport, activeTab]);
+
+            const totals = useMemo(() => {
+                if (sortedDisplayData.length === 0) return null;
+                
+                if (activeTab === 'recap') {
+                    const delayItems = sortedDisplayData.filter(item => item.delay !== null && item.delay > 0 && typeof item.delay === 'number');
+                    const avgDelay = delayItems.length > 0 ? delayItems.reduce((acc, curr) => acc + curr.delay, 0) / delayItems.length : 0;
+                    
+                    return {
+                        panen: sortedDisplayData.reduce((acc, curr) => acc + (parseInt(curr.panenJanjang) || 0), 0),
+                        koreksiPanen: sortedDisplayData.reduce((acc, curr) => acc + (parseInt(curr.koreksiPanen) || 0), 0),
+                        angkut: sortedDisplayData.reduce((acc, curr) => acc + (parseInt(curr.transportJanjang) || 0), 0),
+                        koreksiKirim: sortedDisplayData.reduce((acc, curr) => acc + (parseInt(curr.koreksiKirim) || 0), 0),
+                        selisih: sortedDisplayData.reduce((acc, curr) => acc + (parseInt(curr.selisih) || 0), 0),
+                        kgRestan: sortedDisplayData.reduce((acc, curr) => acc + (curr.kgRestanValue || 0), 0),
+                        avgDelay: avgDelay
+                    };
+                } else if (activeTab === 'harvest') {
+                    const bjrValues = sortedDisplayData.filter(item => item.bjr).map(item => parseFloat(item.bjr));
+                    const avgBjr = bjrValues.length > 0 ? bjrValues.reduce((a, b) => a + b, 0) / bjrValues.length : 0;
+                    const totalKgTotal = sortedDisplayData.reduce((acc, curr) => acc + (parseFloat(curr.kgTotal) || 0), 0);
+                    
+                    return {
+                        janjang: sortedDisplayData.reduce((acc, curr) => acc + (parseInt(curr.jumlahJanjang) || 0), 0),
+                        matang: sortedDisplayData.reduce((acc, curr) => acc + (parseInt(curr.matang) || 0), 0),
+                        mengkal: sortedDisplayData.reduce((acc, curr) => acc + (parseInt(curr.mengkal) || 0), 0),
+                        mentah: sortedDisplayData.reduce((acc, curr) => acc + (parseInt(curr.mentah) || 0), 0),
+                        lewat: sortedDisplayData.reduce((acc, curr) => acc + (parseInt(curr.lewatMatang) || 0), 0),
+                        abn: sortedDisplayData.reduce((acc, curr) => acc + (parseInt(curr.abnormal) || 0), 0),
+                        hama: sortedDisplayData.reduce((acc, curr) => acc + (parseInt(curr.seranganHama) || 0), 0),
+                        tgkai: sortedDisplayData.reduce((acc, curr) => acc + (parseInt(curr.tangkaiPanjang) || 0), 0),
+                        kosong: sortedDisplayData.reduce((acc, curr) => acc + (parseInt(curr.janjangKosong) || 0), 0),
+                        brondolan: sortedDisplayData.reduce((acc, curr) => acc + (parseFloat(curr.kgBerondolan) || 0), 0),
+                        bjr: avgBjr,
+                        kgTotal: totalKgTotal
+                    };
+                } else {
+                    const bjrValues = sortedDisplayData.filter(item => item.bjr).map(item => parseFloat(item.bjr));
+                    const avgBjr = bjrValues.length > 0 ? bjrValues.reduce((a, b) => a + b, 0) / bjrValues.length : 0;
+                    const totalKgTotal = sortedDisplayData.reduce((acc, curr) => acc + (parseFloat(curr.kgTotal) || 0), 0);
+                    const totalKgBerondolan = sortedDisplayData.reduce((acc, curr) => acc + (parseFloat(curr.kgBerondolan) || 0), 0);
+                    
+                    return {
+                        janjang: sortedDisplayData.reduce((acc, curr) => acc + (parseInt(curr.jumlahJanjang) || 0), 0),
+                        bjr: avgBjr,
+                        kgTotal: totalKgTotal,
+                        kgBerondolan: totalKgBerondolan
+                    };
+                }
+            }, [sortedDisplayData, activeTab]);
+
+            // Komponen Header yang bisa di-sort
+            const SortableHeader = ({ children, sortKey, className = "" }) => (
+                <th 
+                    className={`py-3 px-4 text-center bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors select-none ${className}`}
+                    onClick={() => handleSort(sortKey)}
+                    title={`Klik untuk sort berdasarkan ${children}`}
+                >
+                    <div className="flex items-center justify-center gap-1">
+                        <span>{children}</span>
+                        {sortConfig.key === sortKey && (
+                            <span className="text-blue-600 font-bold">
+                                {sortConfig.direction === 'asc' ? '↑' : '↓'}
+                            </span>
+                        )}
+                        {sortConfig.key !== sortKey && (
+                            <span className="text-gray-400 opacity-50">↕</span>
+                        )}
+                    </div>
+                </th>
+            );
+
+            const RecapTable = () => (
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                        <thead className="bg-gray-50 text-gray-600 font-medium border-b">
+                            <tr>
+                                <SortableHeader sortKey="date">Tgl</SortableHeader>
+                                <SortableHeader sortKey="afdeling">Afd</SortableHeader>
+                                <SortableHeader sortKey="blok">Blok</SortableHeader>
+                                <SortableHeader sortKey="noTPH">TPH</SortableHeader>
+                                <SortableHeader sortKey="pemanen">Pemanen</SortableHeader>
+                                <SortableHeader sortKey="panenJanjang" className="bg-green-50">Panen</SortableHeader>
+                                <SortableHeader sortKey="koreksiPanen" className="bg-green-100">Koreksi P</SortableHeader>
+                                <SortableHeader sortKey="transportJanjang" className="bg-blue-50">Angkut</SortableHeader>
+                                <SortableHeader sortKey="koreksiKirim" className="bg-blue-100">Koreksi A</SortableHeader>
+                                <SortableHeader sortKey="selisih">Selisih</SortableHeader>
+                                <SortableHeader sortKey="kgRestanValue" className="bg-orange-50">KG Restan</SortableHeader>
+                                <SortableHeader sortKey="delay" className="bg-yellow-50">Delay (hari)</SortableHeader>
+                                <SortableHeader sortKey="status">Status</SortableHeader>
+                                <th className="py-3 px-4 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                            {sortedDisplayData.map((row, idx) => (
+                                <tr key={idx} className="hover:bg-gray-50 group">
+                                    <td className="py-3 px-4 text-gray-500 whitespace-nowrap">{row.date}</td>
+                                    <td className="py-3 px-4 text-gray-500">{row.afdeling}</td>
+                                    <td className="py-3 px-4 font-medium text-gray-700">{row.blok}</td>
+                                    <td className="py-3 px-4 text-gray-500">{row.noTPH}</td>
+                                    <td className="py-3 px-4 text-gray-600 max-w-xs truncate" title={row.pemanen}>
+                                        {row.pemanen}
+                                    </td>
+                                    <td className="py-3 px-4 text-center bg-green-50/50 font-medium text-green-700">{row.panenJanjang || 0}</td>
+                                    <td className="py-3 px-4 text-center bg-green-100/50 font-medium text-green-600">
+                                        {row.koreksiPanen ? (row.koreksiPanen > 0 ? `+${row.koreksiPanen}` : row.koreksiPanen) : '0'}
+                                    </td>
+                                    <td className="py-3 px-4 text-center bg-blue-50/50 font-medium text-blue-700">{row.transportJanjang || 0}</td>
+                                    <td className="py-3 px-4 text-center bg-blue-100/50 font-medium text-blue-600">
+                                        {row.koreksiKirim ? (row.koreksiKirim > 0 ? `+${row.koreksiKirim}` : row.koreksiKirim) : '0'}
+                                    </td>
+                                    <td className={`py-3 px-4 text-center font-bold ${row.selisih === 0 ? 'text-gray-300' : row.selisih < 0 ? 'text-red-500' : 'text-blue-500'}`}>
+                                        {row.selisih > 0 ? `+${row.selisih}` : row.selisih}
+                                    </td>
+                                    <td className="py-3 px-4 text-center font-medium bg-orange-50/30 text-orange-700">
+                                        {row.kgRestanValue && row.kgRestanValue !== 0 
+                                            ? `${Math.abs(row.kgRestanValue).toFixed(2)} kg` 
+                                            : '-'}
+                                    </td>
+                                    <td className="py-3 px-4 text-center font-medium bg-yellow-50/30 text-yellow-700">
+                                        {row.delay || '-'}
+                                    </td>
+                                    <td className="py-3 px-4 text-center">
+                                        <Badge color={
+                                            row.status === 'Sesuai' ? 'bg-green-100 text-green-700' :
+                                            row.status.includes('Restan') && row.status.includes('Delay') ? 'bg-orange-100 text-orange-700' :
+                                            row.status.includes('Restan') ? 'bg-red-100 text-red-700' :
+                                            row.status.includes('Kelebihan') && row.status.includes('Delay') ? 'bg-purple-100 text-purple-700' :
+                                            row.status.includes('Kelebihan') ? 'bg-blue-100 text-blue-700' :
+                                            'bg-gray-100 text-gray-700'
+                                        }>
+                                            {row.status}
+                                        </Badge>
+                                    </td>
+                                    <td className="py-3 px-4 text-center">
+                                        <button 
+                                            className="px-2 py-1 bg-purple-100 text-purple-600 text-xs rounded hover:bg-purple-200 transition-colors"
+                                            onClick={() => openEditKoreksiModal(row)}
+                                        >
+                                            Edit
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                        {totals && (
+                            <tfoot className="font-bold text-gray-700 bg-gray-100 border-t-2 border-gray-200">
+                                <tr>
+                                    <td colSpan="5" className="py-3 px-4 text-right uppercase text-xs">Total Keseluruhan:</td>
+                                    <td className="py-3 px-4 text-center bg-green-100 text-green-800">{totals.panen.toLocaleString()}</td>
+                                    <td className="py-3 px-4 text-center bg-green-200 text-green-800">
+                                        {totals.koreksiPanen > 0 ? `+${totals.koreksiPanen}` : totals.koreksiPanen}
+                                    </td>
+                                    <td className="py-3 px-4 text-center bg-blue-100 text-blue-800">{totals.angkut.toLocaleString()}</td>
+                                    <td className="py-3 px-4 text-center bg-blue-200 text-blue-800">
+                                        {totals.koreksiKirim > 0 ? `+${totals.koreksiKirim}` : totals.koreksiKirim}
+                                    </td>
+                                    <td className={`py-3 px-4 text-center ${totals.selisih < 0 ? 'text-red-600' : 'text-blue-600'}`}>
+                                        {totals.selisih > 0 ? `+${totals.selisih}` : totals.selisih}
+                                    </td>
+                                    <td className="py-3 px-4 text-center bg-orange-100 text-orange-800">
+                                        {totals.kgRestan ? `${totals.kgRestan.toFixed(2)} kg` : '-'}
+                                    </td>
+                                    <td className="py-3 px-4 text-center bg-yellow-100 text-yellow-800">
+                                        {totals.avgDelay ? `${totals.avgDelay.toFixed(1)} hari` : '-'}
+                                    </td>
+                                    <td colSpan="2"></td>
+                                </tr>
+                            </tfoot>
+                        )}
+                    </table>
+                </div>
+            );
+
+            return (
+                <div className="min-h-screen bg-gray-50 font-sans text-gray-800">
+                    {/* Loading Overlay */}
+                    {loading && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                            <div className="bg-white p-6 rounded-lg shadow-lg flex items-center gap-3">
+                                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
+                                <span className="text-gray-700">Memuat data dari database...</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* HEADER */}
+                    <header className="bg-white border-b border-gray-200 sticky top-16 z-20 shadow-sm no-print">
+                        <div className="max-w-[95%] mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between h-auto md:h-16 py-3 md:py-0 gap-4">
+                                
+                                <div className="flex items-center gap-3">
+                                    <div className="bg-gradient-to-br from-green-500 to-green-700 p-2 rounded-lg shadow-lg shadow-green-500/30">
+                                        <Icon name="layoutDashboard" size={20} className="text-white" />
+                                    </div>
+                                    <div>
+                                        <h1 className="text-xl font-bold text-gray-900 leading-none">Data <span className="text-green-600">Monitoring</span></h1>
+                                        <p className="text-xs text-gray-500 mt-0.5 font-medium">Real-time Database Integration | {harvestRaw.length} panen + {transportRaw.length} pengiriman records</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex bg-gray-100 p-1 rounded-lg overflow-x-auto no-scrollbar">
+                                    {[
+                                        { id: 'recap', label: 'Rekapitulasi', icon: 'arrowRightLeft' },
+                                        { id: 'harvest', label: 'Data Panen Lengkap', icon: 'trees' },
+                                        { id: 'transport', label: 'Pengiriman Detail', icon: 'truck' }
+                                    ].map(tab => (
+                                        <button
+                                            key={tab.id}
+                                            onClick={() => { setActiveTab(tab.id); setFilters({...filters, status: '', blok: '', pemanen: '', namaKerani: '', noKend: ''}); }}
+                                            className={`
+                                                flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap
+                                                ${activeTab === tab.id ? 'bg-white text-green-700 shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200'}
+                                            `}
+                                        >
+                                            <Icon name={tab.icon} size={16} /> {tab.label}
+                                        </button>
+                                    ))}
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </header>
+
+                    <main className="max-w-[95%] mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-8 space-y-6 no-print">
+
+                        {/* CONTENT */}
+                        {harvestRaw.length > 0 || transportRaw.length > 0 ? (
+                            <>
+                                {/* STATS & MAIN CONTENT */}
+                                {activeTab === 'recap' && (
+                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                        <StatCard 
+                                            title="Total Panen" 
+                                            value={sortedDisplayData.reduce((a, b) => a + b.panenJanjang, 0).toLocaleString()} 
+                                            icon="trees" color="bg-green-500" 
+                                        />
+                                        <StatCard 
+                                            title="Total Angkut" 
+                                            value={sortedDisplayData.reduce((a, b) => a + b.transportJanjang, 0).toLocaleString()} 
+                                            icon="truck" color="bg-blue-500" 
+                                        />
+                                        <StatCard 
+                                            title="Kelebihan Angkut" 
+                                            value={sortedDisplayData.filter(i => i.selisih > 0).length} 
+                                            icon="arrowUpCircle" color="bg-blue-600"
+                                            subValue={sortedDisplayData.filter(i => i.selisih > 0).reduce((acc, curr) => acc + curr.selisih, 0) + " Jjg"}
+                                        />
+                                        <StatCard 
+                                            title="Kurang Angkut (Restan)" 
+                                            value={sortedDisplayData.filter(i => i.selisih < 0).length} 
+                                            icon="arrowDownCircle" color="bg-red-500" 
+                                            subValue={Math.abs(sortedDisplayData.filter(i => i.selisih < 0).reduce((acc, curr) => acc + curr.selisih, 0)) + " Jjg"}
+                                        />
+                                    </div>
+                                )}
+
+                                {/* MAIN FILTER TOOLBAR */}
+                                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
+                                    
+                                    {/* DATE FILTERS */}
+                                    <div className="flex flex-col sm:flex-row gap-2 bg-gray-50 p-2 rounded-lg border border-gray-200">
+                                        <div className="flex items-center gap-2">
+                                            <Icon name="calendar" size={16} className="text-gray-500" />
+                                            <span className="text-xs font-bold text-gray-500 uppercase">Tanggal:</span>
+                                        </div>
+                                        <input 
+                                            type="date" 
+                                            className="bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-green-500 focus:border-green-500 block p-1"
+                                            value={filters.startDate}
+                                            onChange={(e) => setFilters({...filters, startDate: e.target.value})}
+                                        />
+                                        <span className="text-gray-400 self-center">-</span>
+                                        <input 
+                                            type="date" 
+                                            className="bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-green-500 focus:border-green-500 block p-1"
+                                            value={filters.endDate}
+                                            onChange={(e) => setFilters({...filters, endDate: e.target.value})}
+                                        />
+                                        {(filters.startDate || filters.endDate) && (
+                                            <button 
+                                                onClick={() => setFilters({...filters, startDate: '', endDate: ''})}
+                                                className="text-xs text-red-500 hover:text-red-700 underline self-center ml-2"
+                                            >
+                                                Reset
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {/* DATA FILTERS */}
+                                    <div className="flex flex-wrap gap-2 w-full xl:w-auto items-center">
+                                        <Icon name="filter" size={16} className="text-gray-400 mr-1" />
+                                        {activeTab === 'recap' && (
+                                            <FilterSelect 
+                                                label="Status" value={filters.status} options={['Sesuai', 'Restan', 'Restan (Delay)', 'Restan (Kurang)', 'Restan (Kurang + Delay)', 'Kelebihan', 'Kelebihan (Delay)']}
+                                                onChange={(val) => setFilters({...filters, status: val})} 
+                                            />
+                                        )}
+                                        <FilterSelect 
+                                            label="Afdeling" value={filters.afdeling} options={filterOptions.afdeling}
+                                            onChange={(val) => setFilters({...filters, afdeling: val})} 
+                                        />
+                                        <FilterSelect 
+                                            label="Blok" value={filters.blok} options={filterOptions.blok}
+                                            onChange={(val) => setFilters({...filters, blok: val})} 
+                                        />
+                                        {activeTab !== 'transport' && (
+                                            <FilterSelect 
+                                                label="Pemanen" value={filters.pemanen} options={filterOptions.pemanen}
+                                                onChange={(val) => setFilters({...filters, pemanen: val})} 
+                                            />
+                                        )}
+                                        {(activeTab === 'harvest' || activeTab === 'transport') && (
+                                            <FilterSelect 
+                                                label="Kerani" value={filters.namaKerani} options={filterOptions.namaKerani}
+                                                onChange={(val) => setFilters({...filters, namaKerani: val})} 
+                                            />
+                                        )}
+                                        {activeTab === 'transport' && (
+                                            <FilterSelect 
+                                                label="No. Kendaraan" value={filters.noKend} options={filterOptions.noKend}
+                                                onChange={(val) => setFilters({...filters, noKend: val})} 
+                                            />
+                                        )}
+                                    </div>
+
+                                    {/* SEARCH & EXPORT */}
+                                    <div className="flex gap-2 w-full xl:w-auto">
+                                        <div className="relative flex-grow xl:w-48">
+                                            <input
+                                                type="text"
+                                                placeholder="Cari..."
+                                                className="w-full pl-9 pr-2 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-green-500 outline-none text-sm"
+                                                value={searchTerm}
+                                                onChange={(e) => setSearchTerm(e.target.value)}
+                                            />
+                                            <Icon name="search" size={16} className="text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                                        </div>
+                                        <button 
+                                            onClick={handleExport}
+                                            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
+                                        >
+                                            <Icon name="fileSpreadsheet" size={16} /> <span className="hidden sm:inline">Excel</span>
+                                        </button>
+                                        {activeTab !== 'recap' && (
+                                            <button 
+                                                onClick={() => window.print()}
+                                                className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
+                                            >
+                                                <Icon name="printer" size={16} /> <span className="hidden sm:inline">Print</span>
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* DATA TABLE */}
+                                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden min-h-[400px]">
+                                    {activeTab === 'recap' && <RecapTable />}
+                                    
+                                    {activeTab === 'harvest' && (
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-sm text-left">
+                                                <thead className="bg-gray-50 text-gray-600 font-medium border-b">
+                                                    <tr>
+                                                        <SortableHeader sortKey="date">Tanggal</SortableHeader>
+                                                        <SortableHeader sortKey="afdeling">Afd</SortableHeader>
+                                                        <SortableHeader sortKey="blok">Blok</SortableHeader>
+                                                        <SortableHeader sortKey="noTPH">TPH</SortableHeader>
+                                                        <SortableHeader sortKey="namaKerani">Kerani</SortableHeader>
+                                                        <SortableHeader sortKey="namaPemanen">Pemanen</SortableHeader>
+                                                        <SortableHeader sortKey="jumlahJanjang" className="bg-green-50">Total Jjg</SortableHeader>
+                                                        <SortableHeader sortKey="koreksiPanen" className="bg-green-100">Koreksi</SortableHeader>
+                                                        <SortableHeader sortKey="bjr" className="bg-blue-50">BJR</SortableHeader>
+                                                        <SortableHeader sortKey="kgTotal" className="bg-orange-50">KG Total</SortableHeader>
+                                                        {/* Detail Grading */}
+                                                        <SortableHeader sortKey="matang">Matang</SortableHeader>
+                                                        <SortableHeader sortKey="mengkal">Mengkal</SortableHeader>
+                                                        <SortableHeader sortKey="mentah">Mentah</SortableHeader>
+                                                        <SortableHeader sortKey="lewatMatang">Lewat</SortableHeader>
+                                                        <SortableHeader sortKey="abnormal">Abn</SortableHeader>
+                                                        <SortableHeader sortKey="seranganHama">Hama</SortableHeader>
+                                                        <SortableHeader sortKey="tangkaiPanjang">Tgkai Pjg</SortableHeader>
+                                                        <SortableHeader sortKey="janjangKosong">Kosong</SortableHeader>
+                                                        <SortableHeader sortKey="kgBerondolan" className="bg-yellow-50">Brondolan</SortableHeader>
+                                                        <SortableHeader sortKey="noAncak">Ancak</SortableHeader>
+                                                        <th className="py-3 px-4 text-center">Foto</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-gray-100">
+                                                    {sortedDisplayData.map((row, idx) => (
+                                                        <tr key={idx} className="hover:bg-gray-50">
+                                                            <td className="py-3 px-4 text-gray-500 text-xs">{row.date}</td>
+                                                            <td className="py-3 px-4 text-gray-600">{row.afdeling}</td>
+                                                            <td className="py-3 px-4 font-medium text-gray-800">{row.blok}</td>
+                                                            <td className="py-3 px-4">{row.noTPH}</td>
+                                                            <td className="py-3 px-4 text-gray-600">{row.namaKerani}</td>
+                                                            <td className="py-3 px-4 whitespace-nowrap">{row.namaPemanen}</td>
+                                                            <td className="py-3 px-4 text-right font-bold text-green-700 bg-green-50/30">{row.jumlahJanjang}</td>
+                                                            <td className="py-3 px-4 text-right text-green-600 bg-green-100/30">
+                                                                {row.koreksiPanen ? (row.koreksiPanen > 0 ? `+${row.koreksiPanen}` : row.koreksiPanen) : '0'}
+                                                            </td>
+                                                            <td className="py-3 px-4 text-right font-medium text-blue-700 bg-blue-50/30">{row.bjr || '-'}</td>
+                                                            <td className="py-3 px-4 text-right font-bold text-orange-700 bg-orange-50/30">{row.kgTotal ? `${row.kgTotal} kg` : '-'}</td>
+                                                            {/* Detail Data Display */}
+                                                            <td className="py-3 px-4 text-right text-gray-600">{row.matang || '-'}</td>
+                                                            <td className="py-3 px-4 text-right text-gray-600">{row.mengkal || '-'}</td>
+                                                            <td className="py-3 px-4 text-right text-red-600 font-medium">{row.mentah > 0 ? row.mentah : '-'}</td>
+                                                            <td className="py-3 px-4 text-right text-gray-600">{row.lewatMatang || '-'}</td>
+                                                            <td className="py-3 px-4 text-right text-gray-600">{row.abnormal || '-'}</td>
+                                                            <td className="py-3 px-4 text-right text-gray-600">{row.seranganHama || '-'}</td>
+                                                            <td className="py-3 px-4 text-right text-gray-600">{row.tangkaiPanjang || '-'}</td>
+                                                            <td className="py-3 px-4 text-right text-gray-600">{row.janjangKosong || '-'}</td>
+                                                            <td className="py-3 px-4 text-right bg-yellow-50/30">{row.kgBerondolan} kg</td>
+                                                            <td className="py-3 px-4 text-xs text-gray-400">{row.noAncak}</td>
+                                                            <td className="py-3 px-4 text-center">
+                                                                {row.mainFoto ? (
+                                                                    <span 
+                                                                        className="text-gray-500 cursor-pointer hover:text-blue-600 flex justify-center"
+                                                                        onClick={() => setPreviewImage(row.mainFoto)}
+                                                                        title="Lihat Foto"
+                                                                    >
+                                                                        <Icon name="camera" size={18}/>
+                                                                    </span>
+                                                                ) : '-'}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                                {/* FOOTER DATA PANEN */}
+                                                {totals && (
+                                                    <tfoot className="font-bold text-gray-700 bg-gray-100 border-t-2 border-gray-200">
+                                                        <tr>
+                                                            <td colSpan="6" className="py-3 px-4 text-right uppercase text-xs">Total:</td>
+                                                            <td className="py-3 px-4 text-right bg-green-100 text-green-800">{totals.janjang.toLocaleString()}</td>
+                                                            <td className="py-3 px-4 text-right bg-blue-100 text-blue-800">{totals.bjr ? totals.bjr.toFixed(2) : '-'}</td>
+                                                            <td className="py-3 px-4 text-right bg-orange-100 text-orange-800">{totals.kgTotal ? `${totals.kgTotal.toFixed(2)} kg` : '-'}</td>
+                                                            <td className="py-3 px-4 text-right text-gray-700">{totals.matang}</td>
+                                                            <td className="py-3 px-4 text-right text-gray-700">{totals.mengkal}</td>
+                                                            <td className="py-3 px-4 text-right text-red-700">{totals.mentah}</td>
+                                                            <td className="py-3 px-4 text-right text-gray-700">{totals.lewat}</td>
+                                                            <td className="py-3 px-4 text-right text-gray-700">{totals.abn}</td>
+                                                            <td className="py-3 px-4 text-right text-gray-700">{totals.hama}</td>
+                                                            <td className="py-3 px-4 text-right text-gray-700">{totals.tgkai}</td>
+                                                            <td className="py-3 px-4 text-right text-gray-700">{totals.kosong}</td>
+                                                            <td className="py-3 px-4 text-right bg-yellow-100 text-yellow-800">{totals.brondolan.toFixed(2)} kg</td>
+                                                            <td colSpan="2"></td>
+                                                        </tr>
+                                                    </tfoot>
+                                                )}
+                                            </table>
+                                        </div>
+                                    )}
+
+                                    {activeTab === 'transport' && (
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-sm text-left">
+                                                <thead className="bg-gray-50 text-gray-600 font-medium border-b">
+                                                    <tr>
+                                                        <SortableHeader sortKey="date">Tanggal</SortableHeader>
+                                                        <SortableHeader sortKey="waktu">Waktu</SortableHeader>
+                                                        <SortableHeader sortKey="nopol">Nopol</SortableHeader>
+                                                        <SortableHeader sortKey="noKend">No. Unit</SortableHeader>
+                                                        <SortableHeader sortKey="afdeling">Afd</SortableHeader>
+                                                        <SortableHeader sortKey="blok">Blok</SortableHeader>
+                                                        <SortableHeader sortKey="noTPH">TPH</SortableHeader>
+                                                        <SortableHeader sortKey="jumlahJanjang" className="bg-blue-50">Muat (Jjg)</SortableHeader>
+                                                        <SortableHeader sortKey="koreksiKirim" className="bg-blue-100">Koreksi</SortableHeader>
+                                                        <SortableHeader sortKey="bjr">BJR</SortableHeader>
+                                                        <SortableHeader sortKey="kgTotal" className="bg-orange-50">KG Total</SortableHeader>
+                                                        <SortableHeader sortKey="kgBerondolan" className="bg-yellow-50">KG Berondolan</SortableHeader>
+                                                        <th className="py-3 px-4">Koordinat</th>
+                                                        <th className="py-3 px-4">Foto</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-gray-100">
+                                                    {sortedDisplayData.map((row, idx) => (
+                                                        <tr key={idx} className="hover:bg-gray-50">
+                                                            <td className="py-3 px-4 text-gray-500 text-xs">{row.date}</td>
+                                                            <td className="py-3 px-4 text-gray-500 font-mono text-xs">{row.waktu}</td>
+                                                            <td className="py-3 px-4 font-medium uppercase">{row.nopol}</td>
+                                                            <td className="py-3 px-4 text-gray-600">{row.noKend}</td>
+                                                            <td className="py-3 px-4 text-gray-600">{row.afdeling}</td>
+                                                            <td className="py-3 px-4 font-medium text-gray-800">{row.blok}</td>
+                                                            <td className="py-3 px-4">{row.noTPH}</td>
+                                                            <td className="py-3 px-4 text-right font-bold text-blue-700 bg-blue-50/30">{row.jumlahJanjang}</td>
+                                                            <td className="py-3 px-4 text-right text-blue-600 bg-blue-100/30">
+                                                                {row.koreksiKirim ? (row.koreksiKirim > 0 ? `+${row.koreksiKirim}` : row.koreksiKirim) : '0'}
+                                                            </td>
+                                                            <td className="py-3 px-4 text-right text-gray-600">{row.bjr || '-'}</td>
+                                                            <td className="py-3 px-4 text-right font-bold text-orange-700 bg-orange-50/30">{row.kgTotal ? `${row.kgTotal} kg` : '-'}</td>
+                                                            <td className="py-3 px-4 text-right font-medium text-yellow-700 bg-yellow-50/30">{row.kgBerondolan ? `${row.kgBerondolan} kg` : '-'}</td>
+                                                            <td className="py-3 px-4 text-xs font-mono text-gray-400 max-w-xs truncate">{row.koordinat}</td>
+                                                            <td className="py-3 px-4 text-center">
+                                                                {row.foto ? (
+                                                                    <span 
+                                                                        className="text-gray-500 cursor-pointer hover:text-blue-600 flex justify-center"
+                                                                        onClick={() => setPreviewImage(row.foto)}
+                                                                        title="Lihat Foto"
+                                                                    >
+                                                                        <Icon name="camera" size={18}/>
+                                                                    </span>
+                                                                ) : '-'}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                                {/* FOOTER TRANSPORT */}
+                                                {totals && (
+                                                    <tfoot className="font-bold text-gray-700 bg-gray-100 border-t-2 border-gray-200">
+                                                        <tr>
+                                                            <td colSpan="7" className="py-3 px-4 text-right uppercase text-xs">Total Keseluruhan:</td>
+                                                            <td className="py-3 px-4 text-right bg-blue-100 text-blue-800">{totals.janjang.toLocaleString()} Jjg</td>
+                                                            <td className="py-3 px-4 text-right text-gray-600 italic">Rata2: {totals.bjr || '-'}</td>
+                                                            <td className="py-3 px-4 text-right bg-orange-100 text-orange-800">{totals.kgTotal ? `${totals.kgTotal.toFixed(2)} kg` : '-'}</td>
+                                                            <td className="py-3 px-4 text-right bg-yellow-100 text-yellow-800">{totals.kgBerondolan ? `${totals.kgBerondolan.toFixed(2)} kg` : '-'}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                    </tfoot>
+                                                )}
+                                            </table>
+                                        </div>
+                                    )}
+                                    
+
+                                    
+                                    {sortedDisplayData.length === 0 && (
+                                        <div className="p-10 text-center text-gray-400">
+                                            Tidak ada data yang sesuai dengan filter.
+                                        </div>
+                                    )}
+                                </div>
+                            </>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-gray-300 rounded-2xl bg-gray-50">
+                                <Icon name="database" size={64} className="text-gray-300 mb-4" />
+                                <h3 className="text-lg font-semibold text-gray-600">Belum ada data monitoring</h3>
+                                <p className="text-gray-400 text-sm mb-6 text-center max-w-md">
+                                    Data monitoring akan otomatis ditampilkan dari database saat tersedia.
+                                </p>
+                                <div className="flex gap-3">
+                                    <a href="dashboard.php" className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors">
+                                        <i className="fas fa-arrow-left"></i>
+                                        <span>Kembali ke Dashboard</span>
+                                    </a>
+                                </div>
+                            </div>
+                        )}
+                    </main>
+                    
+                    {/* PRINT AREA (Hidden on Screen) */}
+                    <PrintTemplate 
+                        data={sortedDisplayData} 
+                        activeTab={activeTab} 
+                        filters={filters} 
+                    />
+
+                    {/* MODAL PHOTO PREVIEW */}
+                    {previewImage && (
+                        <ImageModal src={previewImage} onClose={() => setPreviewImage(null)} />
+                    )}
+                    
+                    {/* MODAL KOREKSI */}
+                    {showKoreksiModal && (
+                        <div 
+                            style={{
+                                position: 'fixed',
+                                top: 0,
+                                left: 0,
+                                width: '100%',
+                                height: '100%',
+                                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                zIndex: 9999,
+                                padding: '1rem'
+                            }}
+                            onClick={(e) => {
+                                // Close modal when clicking backdrop
+                                if (e.target === e.currentTarget) {
+                                    closeKoreksiModal();
+                                }
+                            }}
+                        >
+                            <div 
+                                style={{
+                                    backgroundColor: 'white',
+                                    borderRadius: '8px',
+                                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                                    maxWidth: '28rem',
+                                    width: '100%',
+                                    maxHeight: '90vh',
+                                    overflow: 'auto'
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <div style={{ padding: '1.5rem 1.5rem 1rem 1.5rem', borderBottom: '1px solid #e5e7eb' }}>
+                                    <h2 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1f2937', margin: 0 }}>
+                                        Edit Koreksi Data
+                                    </h2>
+                                    <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem', marginBottom: 0 }}>
+                                        {editingRow ? `${editingRow.afdeling} - Blok ${editingRow.blok} - TPH ${editingRow.noTPH}` : ''}
+                                    </p>
+                                </div>
+                                
+                                <div style={{ padding: '1.5rem' }}>
+                                    {/* Debug info */}
+                                    <div style={{ marginBottom: '1rem', padding: '0.5rem', backgroundColor: '#f3f4f6', borderRadius: '4px', fontSize: '0.75rem' }}>
+                                        Debug: koreksiPanen={koreksiForm.koreksiPanen}, koreksiKirim={koreksiForm.koreksiKirim}, alasan="{koreksiForm.alasan}"
+                                    </div>
+                                    
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
+                                        <div style={{ backgroundColor: '#f0fdf4', padding: '0.75rem', borderRadius: '6px' }}>
+                                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '500', color: '#15803d', marginBottom: '0.25rem' }}>
+                                                Data Panen: {editingRow?.panenJanjang || 0} Jjg
+                                            </label>
+                                            <input
+                                                type="number"
+                                                min="-999"
+                                                max="999"
+                                                value={koreksiForm.koreksiPanen}
+                                                onChange={(e) => {
+                                                    console.log('Panen input changed:', e.target.value);
+                                                    handleKoreksiFormChange('koreksiPanen', e.target.value);
+                                                }}
+                                                onFocus={() => console.log('Panen input focused')}
+                                                onBlur={() => console.log('Panen input blurred')}
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '0.5rem 0.75rem',
+                                                    border: '1px solid #bbf7d0',
+                                                    borderRadius: '4px',
+                                                    fontSize: '0.875rem',
+                                                    outline: 'none',
+                                                    backgroundColor: 'white',
+                                                    pointerEvents: 'auto'
+                                                }}
+                                                placeholder="Koreksi panen (+/-)"
+                                                autoComplete="off"
+                                                disabled={false}
+                                            />
+                                            <p style={{ fontSize: '0.75rem', color: '#059669', marginTop: '0.25rem', marginBottom: 0 }}>
+                                                Total: {(editingRow?.panenJanjang || 0) + koreksiForm.koreksiPanen} Jjg
+                                            </p>
+                                        </div>
+                                        
+                                        <div style={{ backgroundColor: '#eff6ff', padding: '0.75rem', borderRadius: '6px' }}>
+                                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '500', color: '#1d4ed8', marginBottom: '0.25rem' }}>
+                                                Data Kirim: {editingRow?.transportJanjang || 0} Jjg
+                                            </label>
+                                            <input
+                                                type="number"
+                                                min="-999"
+                                                max="999"
+                                                value={koreksiForm.koreksiKirim}
+                                                onChange={(e) => {
+                                                    console.log('Kirim input changed:', e.target.value);
+                                                    handleKoreksiFormChange('koreksiKirim', e.target.value);
+                                                }}
+                                                onFocus={() => console.log('Kirim input focused')}
+                                                onBlur={() => console.log('Kirim input blurred')}
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '0.5rem 0.75rem',
+                                                    border: '1px solid #bfdbfe',
+                                                    borderRadius: '4px',
+                                                    fontSize: '0.875rem',
+                                                    outline: 'none',
+                                                    backgroundColor: 'white',
+                                                    pointerEvents: 'auto'
+                                                }}
+                                                placeholder="Koreksi kirim (+/-)"
+                                                autoComplete="off"
+                                                disabled={false}
+                                            />
+                                            <p style={{ fontSize: '0.75rem', color: '#2563eb', marginTop: '0.25rem', marginBottom: 0 }}>
+                                                Total: {(editingRow?.transportJanjang || 0) + koreksiForm.koreksiKirim} Jjg
+                                            </p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div style={{ marginBottom: '1rem' }}>
+                                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+                                            Alasan Koreksi *
+                                        </label>
+                                        <textarea
+                                            value={koreksiForm.alasan}
+                                            onChange={(e) => {
+                                                console.log('Alasan changed:', e.target.value);
+                                                handleKoreksiFormChange('alasan', e.target.value);
+                                            }}
+                                            onFocus={() => console.log('Alasan textarea focused')}
+                                            onBlur={() => console.log('Alasan textarea blurred')}
+                                            style={{
+                                                width: '100%',
+                                                padding: '0.5rem 0.75rem',
+                                                border: '1px solid #d1d5db',
+                                                borderRadius: '4px',
+                                                fontSize: '0.875rem',
+                                                outline: 'none',
+                                                resize: 'vertical',
+                                                minHeight: '4rem',
+                                                fontFamily: 'inherit',
+                                                pointerEvents: 'auto'
+                                            }}
+                                            rows={3}
+                                            placeholder="Jelaskan alasan koreksi data..."
+                                            required
+                                            autoComplete="off"
+                                            disabled={false}
+                                        />
+                                    </div>
+                                    
+                                    <div style={{ backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '6px', padding: '0.75rem', marginBottom: '1rem' }}>
+                                        <p style={{ fontSize: '0.75rem', color: '#92400e', margin: 0 }}>
+                                            <strong>Perhitungan Restan:</strong><br />
+                                            ({(editingRow?.panenJanjang || 0)} + {koreksiForm.koreksiPanen}) - ({(editingRow?.transportJanjang || 0)} + {koreksiForm.koreksiKirim}) = <strong>{((editingRow?.panenJanjang || 0) + koreksiForm.koreksiPanen) - ((editingRow?.transportJanjang || 0) + koreksiForm.koreksiKirim)} Jjg</strong>
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <div style={{ padding: '1rem 1.5rem 1.5rem 1.5rem', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                                    <button
+                                        onClick={closeKoreksiModal}
+                                        disabled={isSubmittingKoreksi}
+                                        style={{
+                                            padding: '0.5rem 1rem',
+                                            fontSize: '0.875rem',
+                                            color: '#6b7280',
+                                            border: '1px solid #d1d5db',
+                                            borderRadius: '4px',
+                                            backgroundColor: 'white',
+                                            cursor: isSubmittingKoreksi ? 'not-allowed' : 'pointer',
+                                            opacity: isSubmittingKoreksi ? 0.5 : 1
+                                        }}
+                                    >
+                                        Batal
+                                    </button>
+                                    <button
+                                        onClick={handleKoreksiSubmit}
+                                        disabled={isSubmittingKoreksi || !koreksiForm.alasan.trim()}
+                                        style={{
+                                            padding: '0.5rem 1rem',
+                                            backgroundColor: '#7c3aed',
+                                            color: 'white',
+                                            fontSize: '0.875rem',
+                                            borderRadius: '4px',
+                                            border: 'none',
+                                            cursor: (isSubmittingKoreksi || !koreksiForm.alasan.trim()) ? 'not-allowed' : 'pointer',
+                                            opacity: (isSubmittingKoreksi || !koreksiForm.alasan.trim()) ? 0.5 : 1,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.5rem'
+                                        }}
+                                    >
+                                        {isSubmittingKoreksi && (
+                                            <div style={{
+                                                width: '1rem',
+                                                height: '1rem',
+                                                border: '2px solid white',
+                                                borderTop: '2px solid transparent',
+                                                borderRadius: '50%',
+                                                animation: 'spin 1s linear infinite'
+                                            }}></div>
+                                        )}
+                                        {isSubmittingKoreksi ? 'Menyimpan...' : 'Simpan Koreksi'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // Render aplikasi
+        console.log('🎯 Attempting to render React app...');
+        
+        try {
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            console.log('✅ React root created successfully');
+            
+            root.render(React.createElement(App));
+            console.log('✅ App component rendered successfully');
+        } catch (error) {
+            console.error('❌ React rendering failed:', error);
+            document.getElementById('root').innerHTML = `
+                <div style="padding: 20px; color: red; background: #ffebee; border: 1px solid red; margin: 20px; border-radius: 5px;">
+                    <h3>React Rendering Error</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p><strong>Please check console for details.</strong></p>
+                </div>
+            `;
+        }
+    </script>
+
+    <script>
+        // Mobile menu toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const profileDropdownButton = document.getElementById('profile-dropdown-button');
+            const profileDropdown = document.getElementById('profile-dropdown');
+
+            // Toggle mobile menu
+            if (mobileMenuButton && mobileMenu) {
+                mobileMenuButton.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+
+            // Toggle profile dropdown
+            if (profileDropdownButton && profileDropdown) {
+                profileDropdownButton.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    profileDropdown.classList.toggle('hidden');
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!profileDropdownButton.contains(e.target) && !profileDropdown.contains(e.target)) {
+                        profileDropdown.classList.add('hidden');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

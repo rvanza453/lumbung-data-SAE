@@ -1,0 +1,33 @@
+# Lubung Data SAE - Apache Configuration
+
+# Disable directory browsing
+Options -Indexes
+
+# Set default charset
+AddDefaultCharset UTF-8
+
+# Enable Rewrite Engine (Optional - uncomment if needed)
+# <IfModule mod_rewrite.c>
+#     RewriteEngine On
+#     RewriteBase /lubung-data-SAE/
+# </IfModule>
+
+# Protect sensitive files
+<FilesMatch "\.(htaccess|htpasswd|ini|log|sh|sql|md)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# PHP Settings for file upload
+<IfModule mod_php7.c>
+    php_value upload_max_filesize 50M
+    php_value post_max_size 50M
+    php_value max_execution_time 300
+    php_value max_input_time 300
+</IfModule>
+
+# Enable compression (optional)
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+</IfModule>
+

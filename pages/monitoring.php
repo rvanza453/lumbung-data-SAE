@@ -1825,21 +1825,21 @@ requireLogin();
                         <div className="overflow-x-auto">
                             <div className="bg-blue-50 p-4 border-b">
                                 <h3 className="text-lg font-semibold text-gray-700">📍 Data Per Blok</h3>
-                                <p className="text-sm text-gray-600">Klik pada blok untuk melihat detail TPH</p>
+                                <p className="text-sm text-gray-600">Klik pada blok untuk melihat detail TPH. Klik kolom header untuk sorting.</p>
                             </div>
                             <table className="w-full text-sm text-left">
                                 <thead className="bg-gray-50 text-gray-600 font-medium border-b">
                                     <tr>
-                                        <th className="py-3 px-4">Blok</th>
-                                        <th className="py-3 px-4 text-center bg-green-50">Panen Jjg</th>
-                                        <th className="py-3 px-4 text-center bg-blue-50">Kirim Jjg</th>
-                                        <th className="py-3 px-4 text-center bg-red-50">Restan</th>
-                                        <th className="py-3 px-4 text-center">Jumlah TPH</th>
+                                        <SortableHeader sortKey="blok">Blok</SortableHeader>
+                                        <SortableHeader sortKey="totalPanen" className="bg-green-50">Panen Jjg</SortableHeader>
+                                        <SortableHeader sortKey="totalKirim" className="bg-blue-50">Kirim Jjg</SortableHeader>
+                                        <SortableHeader sortKey="restan" className="bg-red-50">Restan</SortableHeader>
+                                        <SortableHeader sortKey="tphCount">Jumlah TPH</SortableHeader>
                                         <th className="py-3 px-4 text-center">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
-                                    {currentDisplayData.map((blok, idx) => (
+                                    {sortedDisplayData.map((blok, idx) => (
                                         <tr key={idx} className="hover:bg-gray-50 cursor-pointer group">
                                             <td className="py-3 px-4 font-medium text-gray-700">
                                                 <div className="flex items-center gap-2">
@@ -1884,7 +1884,7 @@ requireLogin();
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <h3 className="text-lg font-semibold text-gray-700">🌴 TPH di Blok: {selectedBlok}</h3>
-                                        <p className="text-sm text-gray-600">Klik pada TPH untuk melihat detail aktivitas</p>
+                                        <p className="text-sm text-gray-600">Klik pada TPH untuk melihat detail aktivitas. Klik kolom header untuk sorting.</p>
                                     </div>
                                     <button 
                                         onClick={handleBackToBlok}
@@ -1897,16 +1897,16 @@ requireLogin();
                             <table className="w-full text-sm text-left">
                                 <thead className="bg-gray-50 text-gray-600 font-medium border-b">
                                     <tr>
-                                        <th className="py-3 px-4">TPH</th>
-                                        <th className="py-3 px-4 text-center bg-green-50">Panen Jjg</th>
-                                        <th className="py-3 px-4 text-center bg-blue-50">Kirim Jjg</th>
-                                        <th className="py-3 px-4 text-center bg-red-50">Restan</th>
+                                        <SortableHeader sortKey="tph">TPH</SortableHeader>
+                                        <SortableHeader sortKey="totalPanen" className="bg-green-50">Panen Jjg</SortableHeader>
+                                        <SortableHeader sortKey="totalKirim" className="bg-blue-50">Kirim Jjg</SortableHeader>
+                                        <SortableHeader sortKey="restan" className="bg-red-50">Restan</SortableHeader>
                                         <th className="py-3 px-4 text-center">Aktivitas</th>
                                         <th className="py-3 px-4 text-center">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
-                                    {currentDisplayData.map((tph, idx) => (
+                                    {sortedDisplayData.map((tph, idx) => (
                                         <tr key={idx} className="hover:bg-gray-50 cursor-pointer group">
                                             <td className="py-3 px-4 font-medium text-gray-700">
                                                 <div className="flex items-center gap-2">

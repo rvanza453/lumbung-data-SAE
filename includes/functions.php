@@ -20,18 +20,43 @@ function sanitizeInput($data) {
 }
 
 // Function to create upload directory if not exists
+// Returns array with both absolute and relative paths
 function createUploadDirectory($category, $date = null) {
     if ($date === null) {
         $date = date('Y/m');
     }
     
-    $uploadPath = "uploads/" . $category . "/" . $date;
+    // Path relatif dari root project
+    $relativePath = "uploads/" . $category . "/" . $date;
     
-    if (!is_dir($uploadPath)) {
-        mkdir($uploadPath, 0755, true);
+    // Absolute path untuk operasi file system
+    $rootDir = dirname(__DIR__); // Mendapatkan root directory dari folder includes
+    $absolutePath = $rootDir . "/" . $relativePath;
+    
+    // Buat directory jika belum ada
+    if (!is_dir($absolutePath)) {
+        mkdir($absolutePath, 0755, true);
     }
     
-    return $uploadPath;
+    // Return array dengan kedua path
+    return [
+        'absolute' => $absolutePath,
+        'relative' => $relativePath
+    ];
+}
+
+// Helper function to convert relative path to absolute path
+function getAbsolutePath($relativePath) {
+    // Jika sudah absolute path, return as is (check Windows drive letter or Unix root)
+    if (preg_match('/^[a-zA-Z]:[\\\\\/]|^\//', $relativePath)) {
+        return $relativePath;
+    }
+    
+    // Convert relative path to absolute
+    $rootDir = dirname(__DIR__);
+    // Normalize path separator for cross-platform compatibility
+    $relativePath = str_replace('\\', '/', $relativePath);
+    return $rootDir . '/' . $relativePath;
 }
 
 // Function to get file extension
@@ -56,6 +81,128 @@ $allowedFileTypes = [
 
 // Maximum file size (50MB)
 $maxFileSize = 50 * 1024 * 1024;
+
+// Function to normalize Afdeling name - removes leading zeros
+function normalizeAfdelingName($afdeling) {
+    if (empty($afdeling)) {
+        return $afdeling;
+    }
+    
+    // Trim whitespace
+    $afdeling = trim($afdeling);
+    
+    // 1. Direct Numeric Check (e.g., "01" -> "1")
+    if (is_numeric($afdeling)) {
+        return (string)((int)$afdeling);
+    }
+    
+    // 2. Roman to Arabic Conversion (I-XX)
+    // Ordered from longest to shortest to prevent partial replacement errors (e.g. VIII becoming V3)
+    $romanMap = [
+        'XX' => '20', 'XIX' => '19', 'XVIII' => '18', 'XVII' => '17', 'XVI' => '16',
+        'XV' => '15', 'XIV' => '14', 'XIII' => '13', 'XII' => '12', 'XI' => '11',
+        'X' => '10', 'IX' => '9', 'VIII' => '8', 'VII' => '7', 'VI' => '6',
+        'V' => '5', 'IV' => '4', 'III' => '3', 'II' => '2', 'I' => '1'
+    ];
+    
+    $upperAfdeling = strtoupper($afdeling);
+    
+    // Check exact match first (e.g., input is just "II")
+    if (isset($romanMap[$upperAfdeling])) {
+        return $romanMap[$upperAfdeling];
+    }
+    
+    // Check partial match (e.g., "Afdeling II" -> "Afdeling 2")
+    foreach ($romanMap as $roman => $arabic) {
+        // Use word boundaries (\b) to ensure we don't replace parts of words
+        $pattern = '/\b' . $roman . '\b/i';
+        if (preg_match($pattern, $afdeling)) {
+            $afdeling = preg_replace($pattern, $arabic, $afdeling);
+            // Break after finding the number to avoid double replacement issues
+            break; 
+        }
+    }
+    
+    // 3. Remove leading zeros from mixed strings (e.g., "AFD 01" -> "AFD 1")
+    // Case A: Space + Leading Zero (e.g., "AFD 01")
+    $afdeling = preg_replace_callback(
+        '/\s+0+(\d+)/', 
+        function($matches) { return ' ' . $matches[1]; },
+        $afdeling
+    );
+
+    // Case B: Prefix attached to number (e.g., "AFD01")
+    $afdeling = preg_replace_callback(
+        '/^([A-Za-z]+)0+(\d+)$/',
+        function($matches) { return $matches[1] . $matches[2]; },
+        $afdeling
+    );
+    
+    return $afdeling;
+}
+
+// Function to normalize block name - removes leading zeros from numbers
+function normalizeBlokName($blok) {
+    if (empty($blok)) {
+        return $blok;
+    }
+    
+    // Trim whitespace
+    $blok = trim($blok);
+    
+    // Remove leading zeros from numbers in the block name
+    // Pattern: looks for letters followed by numbers with leading zeros
+    // Examples: B02 -> B2, B002 -> B2, Blok 02 -> Blok 2
+    $normalized = preg_replace_callback(
+        '/([A-Za-z]+)0+(\d+)/',
+        function($matches) {
+            // $matches[1] = letters (e.g., "B", "Blok ")
+            // $matches[2] = number without leading zeros (e.g., "2")
+            return $matches[1] . $matches[2];
+        },
+        $blok
+    );
+    
+    // Also handle spaces: "Blok 02" -> "Blok 2"
+    $normalized = preg_replace_callback(
+        '/\s+0+(\d+)/',
+        function($matches) {
+            return ' ' . $matches[1];
+        },
+        $normalized
+    );
+    
+    return $normalized;
+}
+
+// Function to normalize TPH number - removes leading zeros
+function normalizeTphNumber($tph) {
+    if (empty($tph)) {
+        return $tph;
+    }
+    
+    // Trim whitespace
+    $tph = trim($tph);
+    
+    // If it's purely numeric (like "001", "01", "1"), remove leading zeros
+    if (is_numeric($tph)) {
+        return (string)((int)$tph);
+    }
+    
+    // If it contains letters and numbers (like "TPH001", "TPH01"), normalize the number part
+    // Pattern: looks for any prefix followed by numbers with leading zeros
+    $normalized = preg_replace_callback(
+        '/^([A-Za-z]*\s*)0+(\d+)$/',
+        function($matches) {
+            // $matches[1] = prefix (e.g., "TPH", "TPH ", "")
+            // $matches[2] = number without leading zeros (e.g., "1")
+            return $matches[1] . $matches[2];
+        },
+        $tph
+    );
+    
+    return $normalized;
+}
 
 // Function to log user activity
 function logActivity($conn, $user_id, $action, $description, $target_type = null, $target_id = null) {
@@ -166,7 +313,10 @@ function savePanenData($data, $uploadId, $conn) {
         // Extract header information
         $namaKerani = $data['header']['namaKerani'] ?? '';
         $tanggalPemeriksaan = $data['header']['tanggalPemeriksaan'] ?? '';
-        $afdeling = $data['header']['afdeling'] ?? '';
+        
+        // Normalize Afdeling (Header Level)
+        $afdelingRaw = $data['header']['afdeling'] ?? '';
+        $afdeling = normalizeAfdelingName($afdelingRaw);
         
         // Convert tanggal format if needed (from 2025-12-01 to proper date)
         $tanggalPemeriksaan = date('Y-m-d', strtotime($tanggalPemeriksaan));
@@ -234,6 +384,14 @@ function savePanenData($data, $uploadId, $conn) {
                                      $serangan_hama + $tangkai_panjang + $janjang_kosong;
                 }
                 
+                // Normalize block name before saving
+                $blokName = $item['blok'] ?? ($data['header']['blok'] ?? '');
+                $normalizedBlok = normalizeBlokName($blokName);
+                
+                // Normalize TPH number before saving
+                $tphNumber = $item['noTPH'] ?? '';
+                $normalizedTph = normalizeTphNumber($tphNumber);
+                
                 $stmt->execute([
                     ':upload_id' => $uploadId,
                     ':nama_kerani' => $namaKerani,
@@ -242,9 +400,9 @@ function savePanenData($data, $uploadId, $conn) {
                     ':nama_pemanen' => $item['namaPemanen'] ?? '',
                     ':nik_pemanen' => $item['nikPemanen'] ?? '',
                     // fallback ke header blok bila item tidak punya blok (beberapa file grading baru)
-                    ':blok' => $item['blok'] ?? ($data['header']['blok'] ?? ''),
+                    ':blok' => $normalizedBlok,
                     ':no_ancak' => $item['noAncak'] ?? '',
-                    ':no_tph' => $item['noTPH'] ?? '',
+                    ':no_tph' => $normalizedTph,
                     ':jam' => $jam,
                     ':last_modified' => $item['lastModified'] ?? '',
                     ':koordinat' => $item['koordinat'] ?? '',
@@ -287,6 +445,10 @@ function savePengirimanData($data, $uploadId, $conn) {
         $afdeling = $data['header']['afdeling'] ?? '';
         $nopol = $data['header']['nopol'] ?? '';
         $nomorKendaraan = $data['header']['nomorKendaraan'] ?? '';
+
+        // Normalize Afdeling (Header Level)
+        $afdelingRaw = $data['header']['afdeling'] ?? '';
+        $afdeling = normalizeAfdelingName($afdelingRaw);
         
         // Convert tanggal format if needed
         $tanggal = date('Y-m-d', strtotime($tanggal));
@@ -328,6 +490,14 @@ function savePengirimanData($data, $uploadId, $conn) {
                     $kg_total = ($jumlah_janjang * $bjr) + ($kg_berondolan ?? 0);
                 }
                 
+                // Normalize block name before saving
+                $blokName = $item['blok'] ?? '';
+                $normalizedBlok = normalizeBlokName($blokName);
+                
+                // Normalize TPH number before saving
+                $tphNumber = $item['noTPH'] ?? '';
+                $normalizedTph = normalizeTphNumber($tphNumber);
+                
                 $stmt->execute([
                     ':upload_id' => $uploadId,
                     ':tipe_aplikasi' => $tipeAplikasi,
@@ -337,8 +507,8 @@ function savePengirimanData($data, $uploadId, $conn) {
                     ':afdeling' => $afdeling,
                     ':nopol' => $nopol,
                     ':nomor_kendaraan' => $nomorKendaraan,
-                    ':blok' => $item['blok'] ?? '',
-                    ':no_tph' => $item['noTPH'] ?? '',
+                    ':blok' => $normalizedBlok,
+                    ':no_tph' => $normalizedTph,
                     ':jumlah_janjang' => intval($item['jumlahJanjang'] ?? 0),
                     ':waktu' => $waktu,
                     ':koordinat' => $item['koordinat'] ?? '',

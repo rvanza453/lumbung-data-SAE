@@ -28,10 +28,10 @@ try {
         exit;
     }
     
-    $filePath = $file['file_path'];
+    $filePath = getAbsolutePath($file['file_path']);
     
     if (!file_exists($filePath)) {
-        echo "Physical file not found: " . $filePath;
+        echo "Physical file not found: " . $file['file_path'];
         exit;
     }
     

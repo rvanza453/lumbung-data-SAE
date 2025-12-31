@@ -53,14 +53,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $error = 'Tipe file tidak diizinkan! Hanya: ' . implode(', ', $allowedFileTypes);
             } else {
                 // Create upload directory
-                $uploadPath = createUploadDirectory($kategori);
+                $uploadPaths = createUploadDirectory($kategori);
                 
                 // Generate unique filename
                 $uniqueFilename = generateUniqueFilename($file['name']);
-                $fullPath = $uploadPath . '/' . $uniqueFilename;
+                $absolutePath = $uploadPaths['absolute'] . '/' . $uniqueFilename;
+                $relativePath = $uploadPaths['relative'] . '/' . $uniqueFilename;
                 
                 // Move uploaded file
-                if (move_uploaded_file($file['tmp_name'], $fullPath)) {
+                if (move_uploaded_file($file['tmp_name'], $absolutePath)) {
                     // Save to database
                     $database = new Database();
                     $conn = $database->getConnection();
@@ -75,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         $stmt->bindParam(':afdeling', $afdeling);
                         $stmt->bindParam(':filename', $uniqueFilename);
                         $stmt->bindParam(':original_filename', $file['name']);
-                        $stmt->bindParam(':file_path', $fullPath);
+                        $stmt->bindParam(':file_path', $relativePath);
                         $stmt->bindParam(':file_size', $file['size']);
                         $stmt->bindParam(':file_type', $fileExtension);
                         $stmt->bindParam(':uploaded_by', $_SESSION['user_id']);
@@ -84,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             $uploadId = $conn->lastInsertId();
                             
                             // Parse dan simpan data JSON ke tabel yang sesuai
-                            $jsonParseResult = parseAndSaveJsonData($fullPath, $kategori, $uploadId, $conn);
+                            $jsonParseResult = parseAndSaveJsonData($absolutePath, $kategori, $uploadId, $conn);
                             
                             if ($jsonParseResult['success']) {
                                 // Log file upload activity
@@ -105,11 +106,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             }
                         } else {
                             $error = 'Gagal menyimpan data ke database!';
-                            unlink($fullPath); // Delete uploaded file if database save fails
+                            unlink($absolutePath); // Delete uploaded file if database save fails
                         }
                     } catch (PDOException $e) {
                         $error = 'Error database: ' . $e->getMessage();
-                        unlink($fullPath); // Delete uploaded file if database save fails
+                        unlink($absolutePath); // Delete uploaded file if database save fails
                     }
                 } else {
                     $error = 'Gagal mengupload file!';

@@ -148,7 +148,7 @@ $conn = $database->getConnection();
             <div class="col-12">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2><i class="fas fa-folder-open me-2"></i>File Manager</h2>
-                    <a href="upload.php" class="btn btn-primary">
+                    <a href="../pages/upload.php" class="btn btn-primary">
                         <i class="fas fa-upload me-1"></i>Upload Baru
                     </a>
                 </div>
@@ -639,12 +639,12 @@ $conn = $database->getConnection();
                                     <?php if (!empty($search) || !empty($kategori_filter)): ?>
                                         Coba ubah filter atau kata kunci pencarian Anda.
                                     <?php else: ?>
-                                        Mulai dengan mengupload file pertama Anda.
-                                    <?php endif; ?>
-                                </p>
-                                <a href="upload.php" class="btn btn-primary">
-                                    <i class="fas fa-upload me-1"></i>Upload File Pertama
-                                </a>
+                                    Mulai dengan mengupload file pertama Anda.
+                                <?php endif; ?>
+                            </p>
+                            <a href="../pages/upload.php" class="btn btn-primary">
+                                <i class="fas fa-upload me-1"></i>Upload File Pertama
+                            </a>
                             </div>
                         <?php endif; ?>
                     </div>

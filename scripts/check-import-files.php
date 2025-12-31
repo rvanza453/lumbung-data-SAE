@@ -35,7 +35,7 @@ $conn = $database->getConnection();
             
             foreach ($files as $file) {
                 $ext = strtolower(pathinfo($file['original_filename'], PATHINFO_EXTENSION));
-                $path = $file['file_path'];
+                $path = getAbsolutePath($file['file_path']);
                 $exists = file_exists($path);
                 $size = $exists ? filesize($path) : 'N/A';
                 

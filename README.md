@@ -132,8 +132,11 @@ lubung-data-SAE/
 ⭐ = Struktur baru setelah reorganisasi (Dec 2025)
 
 📖 **Dokumentasi Lengkap**: 
-- Lihat `PROJECT_STRUCTURE.md` untuk struktur detail
-- Lihat `DEPLOYMENT_GUIDE.md` untuk deployment ke production
+- **[Index Dokumentasi](docs/INDEX.md)** - Daftar lengkap semua dokumentasi
+- **[Quick Start](docs/quick-start.md)** - Panduan cepat memulai
+- **[Deployment Guide](docs/DEPLOYMENT_GUIDE.md)** - Panduan deployment ke production
+- **[Project Structure](docs/PROJECT_STRUCTURE.md)** - Struktur detail project
+- **[API Documentation](docs/api-documentation.md)** - Dokumentasi REST API
 
 ## 🎯 Cara Penggunaan
 

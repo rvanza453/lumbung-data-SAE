@@ -28,7 +28,7 @@ try {
     
     if ($stmt->rowCount() > 0) {
         $file = $stmt->fetch(PDO::FETCH_ASSOC);
-        $filePath = $file['file_path'];
+        $filePath = getAbsolutePath($file['file_path']);
         
         // Delete from database
         $deleteQuery = "DELETE FROM uploads WHERE id = :id";

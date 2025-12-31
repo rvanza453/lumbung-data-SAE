@@ -31,11 +31,11 @@ try {
         exit;
     }
     
-    $filePath = $file['file_path'];
+    $filePath = getAbsolutePath($file['file_path']);
     
     if (!file_exists($filePath)) {
         http_response_code(404);
-        echo "Physical file not found";
+        echo "Physical file not found: " . $file['file_path'];
         exit;
     }
     

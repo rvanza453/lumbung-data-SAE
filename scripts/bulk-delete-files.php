@@ -59,7 +59,7 @@ try {
         }
         
         // Delete physical file
-        $filePath = $file['file_path'];
+        $filePath = getAbsolutePath($file['file_path']);
         if (file_exists($filePath)) {
             if (!unlink($filePath)) {
                 $failedFiles[] = "Failed to delete physical file: " . $file['original_filename'];
